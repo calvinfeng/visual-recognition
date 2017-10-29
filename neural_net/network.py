@@ -22,6 +22,28 @@ class NeuralNetwork(object):
         self.params['W3'] = std * np.random.rand(hidden_size, output_size)
         self.params['b3'] = np.zeros(output_size)
 
+    def loss(self, X, y, reg=0):
+        """
+        Params:
+        - X: Input matrix, each row represents an input vector per example
+        - y: Correct classification for each input
+
+        Returns:
+        - loss: The total loss of the current model
+        """
+        loss = 0
+        W1, W2, W3 = self.params['W1'], self.params['W2'], self.params['W3']
+
+        probs = self.forward_prop(X)
+        for ith_example, k in np.ndenumerate(y):
+            loss += -np.log(probs[ith_example][k])
+
+        N, _ = X.shape
+        loss = loss / N
+        loss += reg*(np.sum(W1*W1) + np.sum(W2*W2) + np.sum(W3*W3))
+
+        return loss
+
     def forward_prop(self, X):
         """
         Params:
