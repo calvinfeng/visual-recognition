@@ -22,18 +22,42 @@ class NeuralNetwork(object):
         self.params['W3'] = std * np.random.rand(hidden_dim, output_dim)
         self.params['b3'] = np.zeros(output_dim)
 
-    def train(self, X, y, reg=0):
-        act = self._forward_prop(X)
-        loss = self._loss(X, y, act['probs'], reg)
-        grads = self._gradients(X, y, act)
+    def train(self, X, y, learning_rate=1e-3, learning_rate_decay=0.95, reg=0, num_iters=1000, batch_size=200):
+        """Train my shit with stochastic gradient descent
+        """
+        N = X.shape[0]
+        report_interval = max(N / batch_size, 1)
 
-        return True
+        # Collect records
+        loss_history = []
+        train_acc_history = []
+        val_acc_history = []
+
+        for it in range(num_iters):
+            I = np.random.randint(N, size=batch_size)
+            X_batch = np.array(X[I])
+            y_batch = np.array(y[I])
+
+            # Compute loss and gradients using current mini-batch
+            act = self._forward_prop(X_batch)
+            loss = self._loss(X_batch, y_batch, act['probs'], reg)
+            grads = self._gradients(X_batch, y_batch, act, reg)
+
+            loss_history.append(loss)
+
+            for param_name in self.params:
+                self.params[param_name] -= learning_rate * grads[param_name]
+
+            if it % report_interval == 0:
+                learning_rate *= learning_rate_decay
+
+        return loss_history
 
     def predict(self, X):
         act = self._forward_prop(X)
         return np.argmax(act['probs'], axis=1)
 
-    def _loss(self, X, y, probs, reg=0):
+    def _loss(self, X, y, probs, reg):
         """
         Args:
             X: Input matrix, each row represents an input vector for each example
@@ -50,13 +74,13 @@ class NeuralNetwork(object):
         for ith_example, k in np.ndenumerate(y):
             loss += -np.log(probs[ith_example][k])
 
-        N, _ = X.shape
+        N = X.shape[0]
         loss = loss / N
         loss += reg*(np.sum(W1*W1) + np.sum(W2*W2) + np.sum(W3*W3))
 
         return loss
 
-    def _gradients(self, X, y, act, reg=0):
+    def _gradients(self, X, y, act, reg):
         """Compute the gradients for all of the parameters within the network
 
         Args:
@@ -65,11 +89,11 @@ class NeuralNetwork(object):
             act: Activation map which contains all the activation vectors for each layer of the network
             reg: Regularization strength
         """
-        N, _ = X.shape
+        N = X.shape[0]
         W1, W2, W3 = self.params['W1'], self.params['W2'], self.params['W3']
 
         # Define a gradient dictionary
-        grad = dict()
+        grads = dict()
 
         # Computing gradients of softmax score
         dscores = act['probs']
@@ -78,9 +102,9 @@ class NeuralNetwork(object):
 
         # Using ReLU activation to compute gradient of W3 and b3 w.r.t. loss
         a2 = act['a2'] # Dimension: (N x H)
-        grad['W3'] = np.dot(a2.T, dscores) # Dimension: (H x N)(N x O) => (H x O)
-        grad['W3'] += reg*W3
-        grad['b3'] = np.sum(dscores, axis=0) # Dimension: (1 x O)
+        grads['W3'] = np.dot(a2.T, dscores) # Dimension: (H x N)(N x O) => (H x O)
+        grads['W3'] += reg*W3
+        grads['b3'] = np.sum(dscores, axis=0) # Dimension: (1 x O)
 
         # Computing gradient of theta2 score
         da2 = np.dot(dscores, W3.T) # Dimension: (N x O)(O x H) => (N x H)
@@ -89,9 +113,9 @@ class NeuralNetwork(object):
 
         # Using ReLU activation to compute gradient of W2 and b2 w.r.t loss
         a1 = act['a1'] # Dimension: (N x H)
-        grad['W2'] = np.dot(a1.T, dtheta2) # Dimension: (H x N)(N x H) => (H x H)
-        grad['W2'] += reg*W2
-        grad['b2'] = np.sum(dtheta2, axis=0) # Dimension: (1 x H)
+        grads['W2'] = np.dot(a1.T, dtheta2) # Dimension: (H x N)(N x H) => (H x H)
+        grads['W2'] += reg*W2
+        grads['b2'] = np.sum(dtheta2, axis=0) # Dimension: (1 x H)
 
         # Computing gradient of theta1 score
         da1 = np.dot(dtheta2, W2.T) # Dimension: (N x H)(H x H) => (N x H)
@@ -99,11 +123,11 @@ class NeuralNetwork(object):
         dtheta1[a1 <= 0] = 0 # Dimension: (N x H)
 
         # Using ReLU activation to compute gradient of W1 and b1 w.r.t loss
-        grad['W1'] = np.dot(X.T, dtheta1) # Dimension: (D x N)(N x H) = (D x H)
-        grad['W1'] += reg*W1
-        grad['b1'] = np.sum(dtheta1, axis=0) # Dimension: (1 x H)
+        grads['W1'] = np.dot(X.T, dtheta1) # Dimension: (D x N)(N x H) = (D x H)
+        grads['W1'] += reg*W1
+        grads['b1'] = np.sum(dtheta1, axis=0) # Dimension: (1 x H)
 
-        return grad
+        return grads
 
     def _forward_prop(self, X):
         """
@@ -144,9 +168,9 @@ class NeuralNetwork(object):
 if __name__ == "__main__":
     from neural_net.tests.test_forward_prop import generate_random_data
 
-    N = 10
-    input_dim, hidden_dim, output_dim = 5, 5, 5
+    N = 10000
+    input_dim, hidden_dim, output_dim = 5, 10, 5
     rand_X, rand_y = generate_random_data(N, input_dim, output_dim)
     network = NeuralNetwork(input_dim, hidden_dim, output_dim, std=0.25)
 
-    network.train(rand_X, rand_y)
+    print network.train(rand_X, rand_y, learning_rate=1, batch_size=250)
