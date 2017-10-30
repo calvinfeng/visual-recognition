@@ -36,8 +36,10 @@ class NeuralNetwork(object):
     def _loss(self, X, y, probs, reg=0):
         """
         Args:
-            X: Input matrix, each row represents an input vector per example
-            y: Correct classification for each input
+            X: Input matrix, each row represents an input vector for each example
+            y: Label matrix, each row represents an classification vector for each example
+            probs: Probabilities of classification for each example
+            reg: Regularization strength
 
         Returns:
             loss: The total loss of the current model
@@ -55,6 +57,14 @@ class NeuralNetwork(object):
         return loss
 
     def _gradients(self, X, y, act, reg=0):
+        """Compute the gradients for all of the parameters within the network
+
+        Args:
+            X: Input matrix, each row represents an input vector for each example
+            y: Label matrix, each row represents an classification vector for each example
+            act: Activation map which contains all the activation vectors for each layer of the network
+            reg: Regularization strength
+        """
         N, _ = X.shape
         W1, W2, W3 = self.params['W1'], self.params['W2'], self.params['W3']
 
@@ -98,14 +108,14 @@ class NeuralNetwork(object):
     def _forward_prop(self, X):
         """
         Args:
-            X: Input matrix, each row represents an input vector per example
+            X: Input matrix, each row represents an input vector for each example
             N: Number of input examples
             D: Dimension of the input vector (a.k.a input_dim)
             H: Dimension of hidden vector (a.k.a hidden_dim)
             O: Dimension of output vector (a.k.a output_dim)
 
         Returns:
-            probs: Probabilities for each class
+            probs: Probabilities of classification for each example
         """
         N, D = X.shape
 
