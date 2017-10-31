@@ -1,5 +1,3 @@
-from past.builtins import xrange
-
 import numpy as np
 
 
@@ -33,7 +31,7 @@ class NeuralNetwork(object):
         train_acc_history = []
         val_acc_history = []
 
-        for it in range(num_iters):
+        for it in xrange(num_iters):
             I = np.random.randint(N, size=batch_size)
             X_batch = np.array(X[I])
             y_batch = np.array(y[I])
@@ -56,6 +54,39 @@ class NeuralNetwork(object):
     def predict(self, X):
         act = self._forward_prop(X)
         return np.argmax(act['probs'], axis=1)
+
+    def gradient_check(self, X, y, reg=0.05, h=1e-5):
+        activations = self._forward_prop(X)
+        loss = self._loss(X, y, activations['probs'], reg)
+        test_grads = dict()
+        # Suppose our loss function is a f(p) and p is the param vector
+
+        for param_name in self.params:
+            test_grads[param_name] = np.zeros_like(self.params[param_name])
+
+            it = np.nditer(self.params[param_name], flags=['multi_index'], op_flags=['readwrite'])
+            while not it.finished:
+                midx = it.multi_index
+                p = self.params[param_name][midx]
+
+                # Evaluate loss function at p + h
+                self.params[param_name][midx] = p + h
+                act = self._forward_prop(X)
+                fp_plus_h = self._loss(X, y, act['probs'], reg)
+
+                # Evaluate loss function at p - h
+                self.params[param_name][midx] = p - h
+                act = self._forward_prop(X)
+                fp_minus_h = self._loss(X, y, act['probs'], reg)
+
+                # Restore original value
+                self.params[param_name][midx] = p
+
+                # Slope
+                test_grads[param_name][midx] = (fp_plus_h - fp_minus_h) / (2 * h)
+                it.iternext()
+
+        return test_grads
 
     def _loss(self, X, y, probs, reg):
         """
@@ -166,11 +197,20 @@ class NeuralNetwork(object):
 
 
 if __name__ == "__main__":
-    from neural_net.tests.test_forward_prop import generate_random_data
+    from neural_network.tests.test_forward_prop import generate_random_data
 
     N = 10000
     input_dim, hidden_dim, output_dim = 5, 10, 5
     rand_X, rand_y = generate_random_data(N, input_dim, output_dim)
     network = NeuralNetwork(input_dim, hidden_dim, output_dim, std=0.25)
 
-    print network.train(rand_X, rand_y, learning_rate=1, batch_size=250)
+    act = network._forward_prop(rand_X)
+    grads = network._gradients(rand_X, rand_y, act, 0)
+    test_grads = network.gradient_check(rand_X, rand_y, reg=0)
+
+    print 'Analytical Gradient:'
+    print grads['W1']
+
+    print 'Gradient Check:'
+    print test_grads['W1']
+    # network.train(rand_X, rand_y, learning_rate=1, batch_size=250)

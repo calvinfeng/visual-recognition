@@ -1,6 +1,6 @@
 import numpy as np
 import unittest
-from neural_net.network import NeuralNetwork
+from neural_network.network import NeuralNetwork
 
 def generate_random_data(N, input_dim, output_dim):
     """ Generate a set random input vectors and output vectors.
