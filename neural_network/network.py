@@ -20,7 +20,7 @@ class NeuralNetwork(object):
         self.params['W3'] = std * np.random.rand(hidden_dim, output_dim)
         self.params['b3'] = np.zeros(output_dim)
 
-    def train(self, X, y, learning_rate=1e-3, learning_rate_decay=0.95, reg=0, num_iters=1000, batch_size=200):
+    def train(self, X, y, learning_rate=1e-5, learning_rate_decay=0.95, reg=0, num_iters=5000, batch_size=200):
         """Train my shit with stochastic gradient descent
         """
         N = X.shape[0]
@@ -44,10 +44,10 @@ class NeuralNetwork(object):
             loss_history.append(loss)
 
             for param_name in self.params:
-                self.params[param_name] -= learning_rate * grads[param_name]
+                self.params[param_name] -= grads[param_name]*learning_rate*learning_rate_decay
 
             if it % report_interval == 0:
-                learning_rate *= learning_rate_decay
+                print('iteration %d / %d: loss %f' % (it, num_iters, loss))
 
         return loss_history
 
@@ -56,16 +56,21 @@ class NeuralNetwork(object):
         return np.argmax(act['probs'], axis=1)
 
     def gradient_check(self, X, y, reg=0.05, h=1e-5):
+        # Forward prop, compute loss and gradients
         activations = self._forward_prop(X)
         loss = self._loss(X, y, activations['probs'], reg)
-        test_grads = dict()
-        # Suppose our loss function is a f(p) and p is the param vector
+        grads = self._gradients(X, y, activations, reg)
 
+        # Compute numerical gradients with slope test
+        num_grads, err  = dict(), 0
+        p_count = 0
         for param_name in self.params:
-            test_grads[param_name] = np.zeros_like(self.params[param_name])
+            # Extract one of the parameter, e.g. W1, W2, W3 etc...
+            num_grads[param_name] = np.zeros_like(self.params[param_name])
 
             it = np.nditer(self.params[param_name], flags=['multi_index'], op_flags=['readwrite'])
             while not it.finished:
+                # Suppose our loss function is a f(p) and p is the param vector
                 midx = it.multi_index
                 p = self.params[param_name][midx]
 
@@ -83,10 +88,13 @@ class NeuralNetwork(object):
                 self.params[param_name][midx] = p
 
                 # Slope
-                test_grads[param_name][midx] = (fp_plus_h - fp_minus_h) / (2 * h)
+                num_grads[param_name][midx] = (fp_plus_h - fp_minus_h) / (2 * h)
+
+                err += np.abs(num_grads[param_name][midx] - grads[param_name][midx])
+                p_count += 1
                 it.iternext()
 
-        return test_grads
+        return err / p_count
 
     def _loss(self, X, y, probs, reg):
         """
@@ -199,18 +207,14 @@ class NeuralNetwork(object):
 if __name__ == "__main__":
     from neural_network.tests.test_forward_prop import generate_random_data
 
-    N = 10000
-    input_dim, hidden_dim, output_dim = 5, 10, 5
+    N = 100
+    input_dim, hidden_dim, output_dim = 10, 10, 5
     rand_X, rand_y = generate_random_data(N, input_dim, output_dim)
     network = NeuralNetwork(input_dim, hidden_dim, output_dim, std=0.25)
 
     act = network._forward_prop(rand_X)
     grads = network._gradients(rand_X, rand_y, act, 0)
-    test_grads = network.gradient_check(rand_X, rand_y, reg=0)
+    err = network.gradient_check(rand_X, rand_y, reg=0)
 
-    print 'Analytical Gradient:'
-    print grads['W1']
-
-    print 'Gradient Check:'
-    print test_grads['W1']
-    # network.train(rand_X, rand_y, learning_rate=1, batch_size=250)
+    print err
+    loss_hist = network.train(rand_X, rand_y, learning_rate=1e-1)
