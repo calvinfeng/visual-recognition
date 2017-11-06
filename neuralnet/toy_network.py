@@ -1,6 +1,8 @@
 import numpy as np
 
-class TwoLayerNet(object):
+class ToyNetwork(object):
+    """This network exists for debugging purposes
+    """
     def __init__(self, input_dim, hidden_dim, output_dim, std=1e-4):
         self.params = dict()
         self.params['W1'] = std * np.random.randn(input_dim, hidden_dim)
@@ -128,10 +130,9 @@ class TwoLayerNet(object):
 if __name__ == "__main__":
     from neural_network.tests.test_forward_prop import generate_random_data
 
-    N = 5
-    input_dim, hidden_dim, output_dim = 10, 10, 5
+    N, input_dim, hidden_dim, output_dim = 5, 10, 10, 5
     rand_X, rand_y = generate_random_data(N, input_dim, output_dim)
-    network = TwoLayerNet(input_dim, hidden_dim, output_dim, std=0.25)
+    network = ToyNetwork(input_dim, hidden_dim, output_dim, std=0.25)
 
     print network.gradient_check(rand_X, rand_y, reg=0)
     network.train(rand_X, rand_y)
