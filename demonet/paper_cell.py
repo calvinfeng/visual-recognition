@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from simple_net import SimpleNetwork
 
 ##########################
 # TODO: Useful for later #
@@ -44,7 +46,36 @@ def generate_data(N):
 
   return np.array(x).astype(float), np.array(y).astype(float)
 
+if __name__ == "__main__":
+  xtr, ytr = generate_data(1000)
+  xte, yte = generate_data(100)
+  input_dim, hidden_dim, output_dim = xtr.shape[1], 5, ytr.shape[1]
 
-xtr, ytr = generate_data(1)
-print xtr
-print ytr
+  #################################
+  # Initialize the neural network #
+  #################################
+  network = SimpleNetwork(input_dim, hidden_dim, output_dim, std=1e-3)
+
+  test_acc = (network.predict(xte) == np.argmax(yte, axis=1)).mean()
+  print 'Test accuracy before training: %s' % str(test_acc)
+
+  iters, loss_hist, acc_hist = network.train(xtr, ytr)
+
+  test_acc = (network.predict(xte) == np.argmax(yte, axis=1)).mean()
+  print 'Test accuracy after training: %s' % str(test_acc)
+
+  #####################
+  # Print the weights #
+  #####################
+  print network.params['W1']
+  print network.params['W2']
+
+  plt.subplot(2, 1, 1)
+  plt.plot(iters, loss_hist)
+  plt.title('Loss vs Iterations')
+
+  plt.subplot(2, 1, 2)
+  plt.plot(iters, acc_hist)
+  plt.title('Accuracy vs Iterations')
+
+  plt.show()
