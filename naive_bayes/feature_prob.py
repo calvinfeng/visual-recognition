@@ -47,12 +47,12 @@ class FeatureProbability:
         code_count = self.code_count[code]
 
         # Calculate conditional probabilities
-        code_given_spam_prob = code_count.spam_count / self.class_count.spam_count
+        code_given_spam_prob = float(code_count.spam_count) / self.class_count.spam_count
 
         # What if ham count is zero?
         if code_count.ham_count == 0:
             return np.inf
 
-        code_given_ham_prob = code_count.ham_count / self.class_count.ham_count
+        code_given_ham_prob = float(code_count.ham_count) / self.class_count.ham_count
 
         return code_given_spam_prob / code_given_ham_prob

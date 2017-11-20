@@ -72,6 +72,6 @@ def preprocess_cifar_10(dir, num_training=49000, num_validation=1000, num_test=1
     return X_train, y_train, X_val, y_val, X_test, y_test
 
 if __name__ == "__main__":
-    x_training, y_training, x_test, y_test = load_CIFAR10('../data/cifar-10-batches')
+    x_training, y_training, x_test, y_test = load_CIFAR10('data/cifar-10-batches-py')
     print x_training.shape
     print y_training.shape

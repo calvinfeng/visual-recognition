@@ -2,7 +2,9 @@ import os
 import os.path
 import io
 
-DATA_DIR = os.path.join(os.getcwd(), "../data")
+FILEPATH = os.path.dirname(os.path.realpath(__file__))
+DATA_DIR = os.path.join(FILEPATH, "datasets")
+
 
 class Email(object):
     def __init__(self, path, content, word_encoding_dictionary, label):

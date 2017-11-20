@@ -5,8 +5,8 @@ import pickle
 from email import Email
 from word_encoding_dictionary import WordEncodingDictionary
 
-
-DATA_DIR = os.path.join(os.getcwd(), "../data/")
+FILEPATH = os.path.dirname(os.path.realpath(__file__))
+DATA_DIR = os.path.join(FILEPATH, "datasets")
 ENRON_DATA_DIR_NAME = "enron1"
 
 class EmailSet(object):
@@ -59,12 +59,12 @@ def build_email_set():
 
 
 def save_email_set(email_set):
-    with open("../data/emails.p", "wb") as f:
+    with open(os.path.join(DATA_DIR, 'emails.p'), "wb") as f:
         pickle.dump(email_set, f)
 
 
 def build_and_save_email_set():
-    if os.path.isfile("../data/emails.p"):
+    if os.path.isfile(os.path.join(DATA_DIR, 'emails.p')):
         print "Dataset already processed!"
         return
 

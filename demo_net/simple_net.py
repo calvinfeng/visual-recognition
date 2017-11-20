@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from numpy.random import randn
-from demonet.data_util import load_iris_data
+from demo_net.data_util import load_iris_data
 
 
 class SimpleNetwork(object):
@@ -58,8 +58,8 @@ class SimpleNetwork(object):
 
 
 if __name__ == "__main__":
-    xtr, ytr = load_iris_data('./iris_train.csv')
-    xte, yte = load_iris_data('./iris_test.csv')
+    xtr, ytr = load_iris_data('./datasets/iris_train.csv')
+    xte, yte = load_iris_data('./datasets/iris_test.csv')
     input_dim, hidden_dim, output_dim = xtr.shape[1], 5, ytr.shape[1]
     network = SimpleNetwork(input_dim, hidden_dim, output_dim)
 

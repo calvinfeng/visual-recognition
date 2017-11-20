@@ -1,10 +1,10 @@
 import numpy as np
-import neuralnet.data_util as dutil
-from neuralnet.network import NeuralNetwork
+import neural_net.data_util as dutil
+from neural_net.network import NeuralNetwork
 
 
 if __name__ == "__main__":
-    data_dir = '../data/cifar-10-batches'
+    data_dir = 'datasets/cifar-10-batches-py'
 
     xtr, ytr, xval, yval, xte, yte = dutil.preprocess_cifar_10(data_dir)
     print 'Train data shape: %s' % str(xtr.shape)

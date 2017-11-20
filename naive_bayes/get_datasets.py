@@ -3,7 +3,8 @@ import os.path
 import pickle
 from urllib import urlretrieve
 
-DATA_DIR = os.path.join(os.getcwd(), "../data/")
+FILEPATH = os.path.dirname(os.path.realpath(__file__))
+DATA_DIR = os.path.join(FILEPATH, "datasets")
 
 ENRON_SPAM_URL = (
     "http://csmining.org/index.php/"

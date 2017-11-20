@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class ToyNetwork(object):
     """This network exists for debugging purposes
     """
