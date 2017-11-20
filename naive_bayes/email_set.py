@@ -17,9 +17,9 @@ class EmailSet(object):
 
     INSTANCE = None
     @classmethod
-    def get(cls):
+    def get(cls, data_dir=DATA_DIR):
         if not cls.INSTANCE:
-            with open(os.path.join(DATA_DIR, 'data.p'), 'rb') as f:
+            with open(os.path.join(data_dir, 'emails.p'), 'rb') as f:
                 cls.INSTANCE = pickle.load(f)
         return cls.INSTANCE
 
