@@ -15,6 +15,24 @@ class EmailSet(object):
         self.ham_emails = ham_emails
         self.spam_emails = spam_emails
 
+    def split(self, ratio):
+        training_set = EmailSet(self.word_encoding_dictionary, [], [])
+        test_set = EmailSet(self.word_encoding_dictionary, [], [])
+
+        for ham_email in self.ham_emails:
+            if np.random.uniform() < ratio:
+                training_set.ham_emails.append(ham_email)
+            else:
+                test_set.ham_emails.append(ham_email)
+
+        for spam_email in self.spam_emails:
+            if np.random.uniform() < ratio:
+                training_set.spam_emails.append(spam_email)
+            else:
+                test_set.spam_emails.append(spam_email)
+
+        return training_set, test_set
+
     INSTANCE = None
     @classmethod
     def get(cls, data_dir=DATA_DIR):
@@ -22,6 +40,7 @@ class EmailSet(object):
             with open(os.path.join(data_dir, 'emails.p'), 'rb') as f:
                 cls.INSTANCE = pickle.load(f)
         return cls.INSTANCE
+
 
 
 def read_email_dir(word_encoding_dictionary, path, label):
