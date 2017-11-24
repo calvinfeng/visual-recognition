@@ -62,6 +62,27 @@ class FeatureProbabilitySet:
 
         return code_given_spam_prob / code_given_ham_prob
 
+    def no_code_prob_ratio(self, code):
+        """Equivalent to the reverse of code probability ratio
+        """
+        code_count = self.code_count[code]
+
+        no_code_count = Count()
+        no_code_count.spam_count = self.class_count.spam_count - code_count.spam_count
+        no_code_count.ham_count = self.class_count.ham_count - code_count.ham_count
+
+        # Given it is a spam email, what is the probability of NOT having this word
+        no_code_given_spam_prob = float(no_code_count.spam_count) / self.class_count.spam_count
+
+        if no_code_count.ham_count == 0:
+            return np.inf
+
+        # Given it is a ham email, what is the probability of NOT having this word
+        no_code_given_ham_prob = float(no_code_count.ham_count) / self.class_count.ham_count
+
+        return no_code_given_spam_prob / no_code_given_ham_prob
+
+
     def filter_low_reach(self, limit):
         fps = FeatureProbabilitySet()
 
