@@ -30,7 +30,7 @@ with tf.device('/cpu:0'):
     new_w2 = w2.assign(w2 - learning_rate * grad_w2)
     
     # Create a new dummy node to explicitly tell TensorFlow to NOT SKIP computing it
-    gradients = tf.group(new_w1, new_w2)
+    weight_updates = tf.group(new_w1, new_w2)
     
 with tf.Session() as sess:
     print sess.run(tf.report_uninitialized_variables())
@@ -44,6 +44,7 @@ with tf.Session() as sess:
     
     losses = []
     for t in range(50):
-        loss_val, _ = sess.run([loss, gradients], feed_dict=values)
-    
-    
+        loss_val, _ = sess.run([loss, weight_updates], feed_dict=values)
+        losses.append(loss_val)
+        
+    print losses
