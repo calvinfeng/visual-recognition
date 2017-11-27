@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import numpy as np
+from timeit import default_timer
 
-N, D, H = 64, 1000, 100
-with tf.device('/gpu:0'):
+device_name, N, D, H = '/gpu:0', 1000, 1000, 1000
+
+with tf.device(device_name):
     x = tf.placeholder(tf.float32, shape=(N, D))
     y = tf.placeholder(tf.float32, shape=(N, D))
 
@@ -15,6 +17,7 @@ with tf.device('/gpu:0'):
     optimizer = tf.train.GradientDescentOptimizer(7e0)
     weight_updates = optimizer.minimize(loss)
 
+start = default_timer()
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     values = {
@@ -28,5 +31,7 @@ with tf.Session() as sess:
         losses.append(loss_val)
         iters.append(t)
 
+duration = default_timer() - start
+print 'Algorithm took %s using %s' % (duration, device_name)
 plt.plot(iters, losses)
 plt.show()
