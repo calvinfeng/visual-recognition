@@ -5,7 +5,7 @@ from numpy.random import randn
 from demo_net.data_util import load_iris_data
 
 
-class SimpleNetwork(object):
+class SquaredErrorLossNetwork(object):
     def __init__(self, input_dim, hidden_dim, output_dim, std=1e-4):
         self.params = dict()
         self.params['W1'] = std * randn(input_dim, hidden_dim) # random normal distributed
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     xtr, ytr = load_iris_data('./datasets/iris_train.csv')
     xte, yte = load_iris_data('./datasets/iris_test.csv')
     input_dim, hidden_dim, output_dim = xtr.shape[1], 5, ytr.shape[1]
-    network = SimpleNetwork(input_dim, hidden_dim, output_dim)
+    network = SquaredErrorLossNetwork(input_dim, hidden_dim, output_dim)
 
     test_acc = (network.predict(xte) == np.argmax(yte, axis=1)).mean()
     print 'Test accuracy before training: %s' % str(test_acc)

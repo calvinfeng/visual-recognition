@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from simple_net import SimpleNetwork
+from sq_error_loss_net import SimpleNetwork
 
 ##########################
 # TODO: Useful for later #
