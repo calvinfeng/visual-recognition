@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
 from numpy.random import randn
 from demo_net.data_util import load_iris_data
 
