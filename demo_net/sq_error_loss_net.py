@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy.random import randn
 from demo_net.data_util import load_iris_data
+from pdb import set_trace
 
 
 class SquaredErrorLossNetwork(object):
@@ -41,9 +42,7 @@ class SquaredErrorLossNetwork(object):
         return acts
 
     def _loss(self, acts, y):
-        accum = np.square(acts['a2'] - y).sum()
-        N = acts['a2'].shape[0]
-        return accum / N
+        return np.square(acts['a2'] - y).sum()
 
     def _backward_prop(self, x, y, acts):
         grads = dict()
@@ -54,13 +53,85 @@ class SquaredErrorLossNetwork(object):
         grads['theta1'] = grads['a1'] * ((1 - acts['a1']) * acts['a1']) # (N x hidden_dim)
         grads['W1'] = np.dot(x.T, grads['theta1']) # (input_dim x N)(N x hidden_dim)
         return grads
+    
+    def _num_grads(self, x, y, h=1e-5):
+        num_grads = dict()
+        for param_name in self.params:
+            num_grads[param_name] = np.zeros_like(self.params[param_name])
+            
+            it = np.nditer(self.params[param_name], flags=['multi_index'], op_flags=['readwrite'])
+            while not it.finished:
+                # Suppose our loss function is a f(p) and p is the param vector
+                midx = it.multi_index
+                p = self.params[param_name][midx]
+
+                # Evaluate loss function at p + h
+                self.params[param_name][midx] = p + h
+                acts = self._forward_prop(x)
+                fp_plus_h = self._loss(acts, y)
+                
+                # Evaluate loss function at p - h
+                self.params[param_name][midx] = p - h
+                acts = self._forward_prop(x)
+                fp_minus_h = self._loss(acts, y)
+                
+                # Restore original value
+                self.params[param_name][midx] = p
+                
+                # Slope
+                num_grads[param_name][midx] = (fp_plus_h - fp_minus_h) / (2 * h)
+                
+                it.iternext()
+    
+        return num_grads
+
+    def gradient_check(self, x, y, h=1e-5):
+        acts = self._forward_prop(x)
+        grads = self._backward_prop(x, y, acts)
+        
+        # Compute numerical gradients with slope test
+        num_grads, err  = dict(), 0
+        param_count = 0
+        for param_name in self.params:
+            num_grads[param_name] = np.zeros_like(self.params[param_name])
+        
+            it = np.nditer(self.params[param_name], flags=['multi_index'], op_flags=['readwrite'])
+            while not it.finished:
+                # Suppose our loss function is a f(p) and p is the param vector
+                midx = it.multi_index
+                p = self.params[param_name][midx]
+
+                # Evaluate loss function at p + h
+                self.params[param_name][midx] = p + h
+                acts = self._forward_prop(x)
+                fp_plus_h = self._loss(acts, y)
+                
+                # Evaluate loss function at p - h
+                self.params[param_name][midx] = p - h
+                acts = self._forward_prop(x)
+                fp_minus_h = self._loss(acts, y)
+                
+                # Restore original value
+                self.params[param_name][midx] = p
+                
+                # Slope
+                num_grads[param_name][midx] = (fp_plus_h - fp_minus_h) / (2 * h)
+                err += (np.abs(num_grads[param_name][midx] - grads[param_name][midx]) / 
+                    max(np.abs(num_grads[param_name][midx]), np.abs(grads[param_name][midx])))     
+                param_count += 1
+                
+                it.iternext()
+        
+        return err / param_count
 
 
 if __name__ == "__main__":
     xtr, ytr = load_iris_data('./datasets/iris_train.csv')
     xte, yte = load_iris_data('./datasets/iris_test.csv')
+    
     input_dim, hidden_dim, output_dim = xtr.shape[1], 5, ytr.shape[1]
     network = SquaredErrorLossNetwork(input_dim, hidden_dim, output_dim)
+    print 'Performing gradient check: %s' % network.gradient_check(xtr, ytr)
 
     test_acc = (network.predict(xte) == np.argmax(yte, axis=1)).mean()
     print 'Test accuracy before training: %s' % str(test_acc)

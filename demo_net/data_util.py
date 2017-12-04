@@ -18,5 +18,8 @@ def load_iris_data(filepath, multi_dimen_labels=True):
             else:
                 labels.append(float(row[4]))
 
-    return np.array(inputs).astype('float'), np.array(labels).astype('float')
+    if multi_dimen_labels:
+        return np.array(inputs).astype('float'), np.array(labels).astype('float')
+    
+    return np.array(inputs).astype('float'), np.array(labels).astype('int')
 
