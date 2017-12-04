@@ -88,34 +88,13 @@ class SquaredErrorLossNetwork(object):
     def gradient_check(self, x, y, h=1e-5):
         acts = self._forward_prop(x)
         grads = self._backward_prop(x, y, acts)
-        
-        # Compute numerical gradients with slope test
-        num_grads, err  = dict(), 0
-        param_count = 0
-        for param_name in self.params:
-            num_grads[param_name] = np.zeros_like(self.params[param_name])
-        
+        num_grads = self._num_grads(x, y, h)
+        err, param_count = 0, 0
+
+        for param_name in self.params:        
             it = np.nditer(self.params[param_name], flags=['multi_index'], op_flags=['readwrite'])
             while not it.finished:
-                # Suppose our loss function is a f(p) and p is the param vector
                 midx = it.multi_index
-                p = self.params[param_name][midx]
-
-                # Evaluate loss function at p + h
-                self.params[param_name][midx] = p + h
-                acts = self._forward_prop(x)
-                fp_plus_h = self._loss(acts, y)
-                
-                # Evaluate loss function at p - h
-                self.params[param_name][midx] = p - h
-                acts = self._forward_prop(x)
-                fp_minus_h = self._loss(acts, y)
-                
-                # Restore original value
-                self.params[param_name][midx] = p
-                
-                # Slope
-                num_grads[param_name][midx] = (fp_plus_h - fp_minus_h) / (2 * h)
                 err += (np.abs(num_grads[param_name][midx] - grads[param_name][midx]) / 
                     max(np.abs(num_grads[param_name][midx]), np.abs(grads[param_name][midx])))     
                 param_count += 1
