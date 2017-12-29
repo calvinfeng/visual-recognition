@@ -4,11 +4,17 @@ import numpy as np
 class AffineGate(object):
     def __init__(self):
         self.input = None
-        self.output = None
         self.weight = None
         self.bias = None
 
-    def forward_pass(input, weight, bias):
+    def forward_pass(self, input, weight, bias):
+        """
+        Args:
+            input: A matrix of any shape
+
+        Returns:
+            output: A matrix of product of the input and weights plus bias
+        """
         self.input = input
         self.weight = weight
         self.bias = bias
@@ -19,18 +25,21 @@ class AffineGate(object):
 
         return output
 
-
-    def backward_pass(grad_out):
+    def backward_pass(self, grad_out):
         """
         Args:
-            grad_out: Upstream derivative of shape (N, M)
+            grad_out: Upstream derivative
 
         Returns:
-            grad_in: Gradients of L with respect to input matrix, of shape (N, d_1, ..., d_k)
-            grad_weight: Gradient of L with respect to weight matrix of shape (D, M)
-            grad_bias: Gradient of L with respect to bias vector of shape (M,)
+            grad_in: Gradients of upstream variable with respect to input matrix
+            grad_weight: Gradient of upstream variable with respect to weight matrix of shape (D, M)
+            grad_bias: Gradient of upstream variable with respect to bias vector of shape (M,)
+
+        The shape changes depending on which layer this gate is inserted. For example, if it is the first gate in the
+        network, then grad_in has the shape (N, d_1, ..., d_k) and grad_weight has (D, M). Otherwise, the grad_in would
+        be (N x M) and grad_weight would be (M x M).
         """
-        if self.input and self.weight and self.bias:
+        if self.input is not None and self.weight is not None:
             D = np.prod(self.input.shape[1:])
             input_tf = self.input.reshape(self.input.shape[0], D)
 
