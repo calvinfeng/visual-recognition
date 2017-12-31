@@ -1,5 +1,6 @@
 from layer.affine_relu_gate import AffineReLUGate
 from layer.affine_gate import AffineGate
+from gradient_check import eval_numerical_gradient, rel_error
 import numpy as np
 
 
@@ -25,6 +26,14 @@ class Network(object):
         self.params['W' + str(layer)] = np.random.normal(0, scale=weight_scale, size=(prev_dim, num_classes))
         self.params['b' + str(layer)] = np.zeros(num_classes,)
         self.gates[str(layer)] = AffineGate()
+
+    def gradient_check(self, x, y):
+        print "Running numeric gradient check with reg = %s" % self.reg
+        loss, grads = self.loss(x, y)
+        for param_key in sorted(self.params):
+            f = lambda _: self.loss(x, y)[0]
+            num_grad = eval_numerical_gradient(f, self.params[param_key], verbose=False)
+            print "%s relative error: %.2e" % (param_key, rel_error(num_grad, grads[param_key]))
 
     def loss(self, x, y=None):
         x = x.astype(self.dtype)
@@ -85,7 +94,7 @@ class Network(object):
             loss: Scalar value of the loss
             grad_x: Gradient of the loss with respect to x
         """
-
+        # Ensure numerical stability by shifting the input matrix by its largest value in each row.
         shifted_logits = x - np.max(x, axis=1, keepdims=True)
         Z = np.sum(np.exp(shifted_logits), axis=1, keepdims=True)
         log_probs = shifted_logits - np.log(Z)
@@ -102,17 +111,18 @@ class Network(object):
 
 
 if __name__ == "__main__":
-    N = 100
+    N = 10
     num_classes = 10
-    hidden_dims = [100, 100, 100, 100]
+    hidden_dims = [10, 10, 10, 10]
 
-    rand_inputs = np.random.randn(N, 32, 32, 3)
+    np.random.seed(1)
+    rand_inputs = 100 * np.random.randn(N, 5)
     rand_labels = np.random.randint(num_classes, size=(N,))
 
-    network = Network(hidden_dims)
-    print rand_labels
+    network = Network(hidden_dims, input_dim=5)
     scores =  network.loss(rand_inputs)
     loss, grads = network.loss(rand_inputs, rand_labels)
+    print "Loss: %s and Grads has keys %s" % (loss, str(sorted(grads.keys())))
+    network.gradient_check(rand_inputs, rand_labels)
 
     print "Scores: %s" % str(scores.shape)
-    print "Loss: %s and Grads has shape %s" % (loss, str(grads.keys()))
