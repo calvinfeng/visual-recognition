@@ -18,6 +18,7 @@ def sgd(w, dw, config=None):
 
     return w, config
 
+
 def sgd_momentum(w, dw, config=None):
     """Performs stochastic gradient descent with momentum
 
@@ -41,6 +42,7 @@ def sgd_momentum(w, dw, config=None):
 
     config['velocity'] = v
     return next_w, config
+
 
 def rmsprop(x, dx, config=None):
     """Performs RMSProp update rule, which uses a moving average of squared gradient values to set adaptive per-parameter
@@ -67,6 +69,7 @@ def rmsprop(x, dx, config=None):
 
     config['cache'] = grad_squared
     return next_x, config
+
 
 def adam(x, dx, config=None):
     """Performs Adam update rule, which incorporates moving average of both the gradient and its square, and a bias
