@@ -16,7 +16,7 @@ num_dx = eval_numerical_gradient_array(lambda x: gate.forward_pass(x, w, b), x, 
 num_dw = eval_numerical_gradient_array(lambda w: gate.forward_pass(x, w, b), w, dout)
 num_db = eval_numerical_gradient_array(lambda b: gate.forward_pass(x, w, b), b, dout)
 
-print "Testing backward pass:"
+print "Testing AffineReLUGate backward pass:"
 print "dx error: %s" % rel_error(num_dx, dx)
 print "dw error: %s" % rel_error(num_dw, dw)
 print "db error: %s" % rel_error(num_db, db)

@@ -13,7 +13,7 @@ correct_out = np.array([[ 0.,          0.,          0.,          0.,        ],
                         [ 0.22727273,  0.31818182,  0.40909091,  0.5,       ]])
 
 # Compare your output with ours. The error should be around 5e-8
-print "Testing forward_pass function:"
+print "Testing ReLUGate forward pass function:"
 print "Error: %s" % rel_error(output, correct_out)
 
 np.random.seed(231)
@@ -25,5 +25,5 @@ dx_num = eval_numerical_gradient_array(lambda x: gate.forward_pass(x), x, dout)
 dx = gate.backward_pass(dout)
 
 # The error should be around 3e-12
-print "Testing backward_pass function:"
+print "Testing ReLUGate backward pass function:"
 print "Error: %s" % rel_error(dx_num, dx)

@@ -21,7 +21,7 @@ output = gate.forward_pass(x, w, b)
 correct_output = np.array([[ 1.49834967,  1.70660132,  1.91485297],
                         [ 3.25553199,  3.5141327,   3.77273342]])
 
-print "Testing forward pass function:"
+print "Testing AffineGate forward pass function:"
 print "forward pass error: %s" % rel_error(output, correct_output)
 
 # Test the affine_backward function
@@ -37,7 +37,7 @@ num_db = eval_numerical_gradient_array(lambda b: gate.forward_pass(x, w, b), b, 
 
 dx, dw, db = gate.backward_pass(dout)
 
-print "Testing affine_backward function:"
+print "Testing AffineGate backward pass function:"
 print "dx error: %s" % rel_error(num_dx, dx)
 print "dw error: %s" % rel_error(num_dw, dw)
 print "db error: %s" % rel_error(num_db, db)
