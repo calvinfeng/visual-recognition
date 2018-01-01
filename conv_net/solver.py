@@ -187,7 +187,7 @@ class Solver(object):
                 if val_acc > self.best_val_acc:
                     self.best_val_acc = val_acc
                     self.best_params = {}
-                    for key, val = self.model.params.items():
+                    for key, val in self.model.params.items():
                         self.best_params[key] = val.copy()
 
         # At the end of training, swap the best params into the model
