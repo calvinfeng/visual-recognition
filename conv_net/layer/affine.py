@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class AffineGate(object):
+class AffineLayer(object):
     def __init__(self):
         self.input = None
         self.weight = None

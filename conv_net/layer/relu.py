@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class ReLUGate(object):
+class ReLULayer(object):
     def __init__(self):
         self.input = None
 

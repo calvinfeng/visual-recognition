@@ -1,5 +1,5 @@
-from layer.affine_relu_gate import AffineReLUGate
-from layer.affine_gate import AffineGate
+from composite.affine_relu import AffineReLULayer
+from layer.affine import AffineLayer
 from gradient_check import eval_numerical_gradient, rel_error
 import numpy as np
 
@@ -11,21 +11,21 @@ class NeuralNetModel(object):
         self.dtype = np.float32
         self.use_batchnorm = use_batchnorm
         self.params = dict()
-        self.gates = dict()
+        self.layers = dict()
 
-        layer = 1
+        l = 1
         prev_dim = input_dim
         for dim in hidden_dims:
-            self.params['W' + str(layer)] = np.random.normal(0, scale=weight_scale, size=(prev_dim, dim))
-            self.params['b' + str(layer)] = np.zeros(dim,)
-            self.gates[str(layer)] = AffineReLUGate()
+            self.params['W' + str(l)] = np.random.normal(0, scale=weight_scale, size=(prev_dim, dim))
+            self.params['b' + str(l)] = np.zeros(dim,)
+            self.layers[str(l)] = AffineReLULayer()
 
             prev_dim = dim
-            layer += 1
+            l += 1
 
-        self.params['W' + str(layer)] = np.random.normal(0, scale=weight_scale, size=(prev_dim, num_classes))
-        self.params['b' + str(layer)] = np.zeros(num_classes,)
-        self.gates[str(layer)] = AffineGate()
+        self.params['W' + str(l)] = np.random.normal(0, scale=weight_scale, size=(prev_dim, num_classes))
+        self.params['b' + str(l)] = np.zeros(num_classes,)
+        self.layers[str(l)] = AffineLayer()
 
     def gradient_check(self, x, y):
         print "Running numeric gradient check with reg = %s" % self.reg
@@ -43,14 +43,14 @@ class NeuralNetModel(object):
             mode = 'test'
 
         prev_output = x
-        layer = 1
-        while layer <= self.num_layers:
-            weight = self.params['W' + str(layer)]
-            bias = self.params['b' + str(layer)]
-            gate = self.gates[str(layer)]
+        l = 1
+        while l <= self.num_layers:
+            weight = self.params['W' + str(l)]
+            bias = self.params['b' + str(l)]
+            gate = self.layers[str(l)]
 
             prev_output = gate.forward_pass(prev_output, weight, bias)
-            layer += 1
+            l += 1
 
         scores = prev_output
         if mode == 'test':
@@ -60,26 +60,26 @@ class NeuralNetModel(object):
         # Think of scores is an input to the softmax loss, so the gradient returned from _softmax is the gradient of the
         # input, i.e. grad_score
 
-        layer = 1
-        while layer <= self.num_layers:
-            weight = self.params['W' + str(layer)]
+        l = 1
+        while l <= self.num_layers:
+            weight = self.params['W' + str(l)]
             loss += 0.5 * self.reg * np.sum(weight * weight)
-            layer += 1
+            l += 1
 
         grads = dict()
-        layer = self.num_layers
-        while layer > 0:
-            gate = self.gates[str(layer)]
-            if layer == self.num_layers:
-                grad_input, grads['W' + str(layer)], grads['b' + str(layer)] = gate.backward_pass(grad_input)
-                grads['W' + str(layer)] += self.reg * self.params['W' + str(layer)]
+        l = self.num_layers
+        while l > 0:
+            gate = self.layers[str(l)]
+            if l == self.num_layers:
+                grad_input, grads['W' + str(l)], grads['b' + str(l)] = gate.backward_pass(grad_input)
+                grads['W' + str(l)] += self.reg * self.params['W' + str(l)]
             else:
                 if self.use_batchnorm:
                     print "Using batchnorm, TO BE IMPLEMENTED"
                 else:
-                    grad_input, grads['W' + str(layer)], grads['b' + str(layer)] = gate.backward_pass(grad_input)
-                    grads['W' + str(layer)] += self.reg * self.params['W' + str(layer)]
-            layer -= 1
+                    grad_input, grads['W' + str(l)], grads['b' + str(l)] = gate.backward_pass(grad_input)
+                    grads['W' + str(l)] += self.reg * self.params['W' + str(l)]
+            l -= 1
 
         return loss, grads
 
@@ -108,4 +108,3 @@ class NeuralNetModel(object):
         grad_x /= N
 
         return loss, grad_x
-        
