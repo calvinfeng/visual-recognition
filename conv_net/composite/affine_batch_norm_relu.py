@@ -1,14 +1,14 @@
 import numpy as np
-from conv_net.layer.affine import AffineLayer
-from conv_net.layer.relu import ReLULayer
-from conv_net.layer.batch_norm import BatchNormLayer
+from conv_net.layer.affine import Affine
+from conv_net.layer.relu import ReLU
+from conv_net.layer.batch_norm import BatchNorm
 
 
-class AffineBatchNormReLULayer(object):
+class AffineBatchNormReLU(object):
     def __init__(self):
-        self.affine_layer = AffineLayer()
-        self.relu_layer = ReLULayer()
-        self.batch_norm_layer = BatchNormLayer()
+        self.affine_layer = Affine()
+        self.relu_layer = ReLU()
+        self.batch_norm_layer = BatchNorm()
 
     def forward_pass(self, x, w, b, gamma, beta, bn_param):
         """ Performs forward propagation through affine, batch norm, and ReLU layers

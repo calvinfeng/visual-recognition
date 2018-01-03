@@ -1,12 +1,12 @@
 import numpy as np
-from conv_net.layer.affine import AffineLayer
-from conv_net.layer.relu import ReLULayer
+from conv_net.layer.affine import Affine
+from conv_net.layer.relu import ReLU
 
 
-class AffineReLULayer(object):
+class AffineReLU(object):
     def __init__(self):
-        self.affine_layer = AffineLayer()
-        self.relu_layer = ReLULayer()
+        self.affine_layer = Affine()
+        self.relu_layer = ReLU()
 
     def forward_pass(self, x, w, b):
         """Performs forward propagation through affine and ReLU layers

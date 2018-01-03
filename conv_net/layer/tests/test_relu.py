@@ -1,4 +1,4 @@
-from conv_net.layer.relu import ReLULayer
+from conv_net.layer.relu import ReLU
 from conv_net.gradient_check import *
 import numpy as np
 import unittest
@@ -6,7 +6,7 @@ import unittest
 
 class ReluGateTest(unittest.TestCase):
     def setUp(self):
-        self.layer = ReLULayer()
+        self.layer = ReLU()
 
     def test_forward_pass(self):
         x = np.linspace(-0.5, 0.5, num=12).reshape(3, 4)

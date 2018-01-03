@@ -1,7 +1,13 @@
 import numpy as np
 
 
-class ReLULayer(object):
+class ReLU(object):
+    """ReLU implements a network layer that performs rectified linear unit transformation.
+
+    The input to this layer is a matrix of shape (N, D). The layer squashes all values that are less than zero in
+    input matrix.
+    """
+
     def __init__(self):
         self.input = None
 

@@ -1,7 +1,13 @@
 import numpy as np
 
 
-class AffineLayer(object):
+class Affine(object):
+    """Affine implements a network layer that performs matrix multiplication.
+
+    Affine transformation is basically multiplying an input vector with a weight matrix plus bias. The input can come in
+    any shape, (N, d1, d2, d3, ..., d_n), e.g. a set of 100 RGB 32x32 images is (100, 3, 32, 32).
+    """
+    
     def __init__(self):
         self.input = None
         self.weight = None

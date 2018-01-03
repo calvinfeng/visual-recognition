@@ -1,12 +1,12 @@
-from conv_net.layer.batch_norm import BatchNormLayer
+from conv_net.layer.batch_norm import BatchNorm
 from conv_net.gradient_check import *
 import numpy as np
 import unittest
 
 
-class BatchNormLayerTest(unittest.TestCase):
+class BatchNormTest(unittest.TestCase):
     def setUp(self):
-        self.layer = BatchNormLayer()
+        self.layer = BatchNorm()
 
     def test_forward_pass(self):
         np.random.seed(1)

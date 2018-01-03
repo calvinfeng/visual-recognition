@@ -1,5 +1,5 @@
 from conv_net.solver import Solver
-from conv_net.neural_net_model import NeuralNetModel
+from conv_net.fc_network_model import FCNetworkModel
 import numpy as np
 
 
@@ -12,7 +12,7 @@ if __name__ == "__main__":
     rand_inputs = 100 * np.random.randn(N, 5)
     rand_labels = np.random.randint(num_classes, size=(N,))
 
-    model = NeuralNetModel(hidden_dims, input_dim=5)
+    model = FCNetworkModel(hidden_dims, input_dim=5)
 
     data = {
         'x_train': [],

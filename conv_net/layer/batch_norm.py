@@ -1,7 +1,15 @@
 import numpy as np
 
 
-class BatchNormLayer(object):
+class BatchNorm(object):
+    """BatchNorm implements a network layer that performs batch normalization.
+
+    Normalization is performed on a mini-batch of input data. This layer includes two extra learning parameters, gamma
+    and beta. The gamma is known as the scaling factor and beta is known as the shifting factor. If an optimized network
+    produces a gamma with value mini-batch var^2 and a beta with value mini-batch mean, then normalization is canceled
+    and this layer performs an identity transformation.
+    """
+
     def __init__(self):
         self.x = None
         self.norm_x = None
@@ -44,7 +52,7 @@ class BatchNormLayer(object):
             self.norm_x = (x - self.mean) / np.sqrt(self.var + self.eps)
             out = self.norm_x * self.gamma + self.beta
 
-            # Formula for exponential moving average
+            # Formula for exponential moving average, running_mean and running_var are used in test time
             running_mean = momentum * running_mean + (1 - momentum) * self.mean
             running_var = momentum * running_var + (1 - momentum) * self.var
 

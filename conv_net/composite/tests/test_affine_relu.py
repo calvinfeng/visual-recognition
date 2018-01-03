@@ -1,12 +1,12 @@
-from conv_net.composite.affine_relu import AffineReLULayer
+from conv_net.composite.affine_relu import AffineReLU
 from conv_net.gradient_check import *
 import numpy as np
 import unittest
 
 
-class AffineReLULayerTest(unittest.TestCase):
+class AffineReLUTest(unittest.TestCase):
     def setUp(self):
-        self.layer = AffineReLULayer()
+        self.layer = AffineReLU()
 
     def test_backward_pass(self):
         np.random.seed(231)

@@ -1,10 +1,16 @@
-from composite.affine_relu import AffineReLULayer
-from layer.affine import AffineLayer
+from composite.affine_relu import AffineReLU
+from layer.affine import Affine
 from gradient_check import eval_numerical_gradient, rel_error
 import numpy as np
 
 
-class NeuralNetModel(object):
+class FCNetworkModel(object):
+    """FCNetworkModel implements a fully connected neural network with arbitrary number of hidden layer.
+
+    Depending on whether batch normalization or dropout is used, every hidden layer is consisted of affine transformation,
+    batch normalization, and ReLU activations. The final layer is affine transformation and softmax probability computation.
+    """
+
     def __init__(self, hidden_dims, input_dim=32*32*3, num_classes=10, weight_scale=1e-3, reg=0.0, use_batchnorm=False):
         self.reg = reg
         self.num_layers = len(hidden_dims) + 1
@@ -18,14 +24,14 @@ class NeuralNetModel(object):
         for dim in hidden_dims:
             self.params['W' + str(l)] = np.random.normal(0, scale=weight_scale, size=(prev_dim, dim))
             self.params['b' + str(l)] = np.zeros(dim,)
-            self.layers[str(l)] = AffineReLULayer()
+            self.layers[str(l)] = AffineReLU()
 
             prev_dim = dim
             l += 1
 
         self.params['W' + str(l)] = np.random.normal(0, scale=weight_scale, size=(prev_dim, num_classes))
         self.params['b' + str(l)] = np.zeros(num_classes,)
-        self.layers[str(l)] = AffineLayer()
+        self.layers[str(l)] = Affine()
 
     def gradient_check(self, x, y):
         print "Running numeric gradient check with reg = %s" % self.reg
@@ -36,6 +42,17 @@ class NeuralNetModel(object):
             print "%s relative error: %.2e" % (param_key, rel_error(num_grad, grads[param_key]))
 
     def loss(self, x, y=None):
+        """Computes loss and gradients if label data is provided, else returns scores
+
+        Args:
+            x: Input matrix of any shape, depending on initialization values of the model
+            y: Labels for training data x, of shape (N,)
+
+        Returns:
+            loss: Loss calculation of the model
+            scores: Scores of each test example, of shape (N, num_classes)
+            grads: Dictionary that contains gradients for each parameter
+        """
         x = x.astype(self.dtype)
 
         mode = 'train'

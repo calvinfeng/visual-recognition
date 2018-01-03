@@ -1,10 +1,10 @@
-from conv_net.layer.affine import AffineLayer
+from conv_net.layer.affine import Affine
 from conv_net.gradient_check import *
 import numpy as np
 import unittest
 
 
-class AffineLayerTest(unittest.TestCase):
+class AffineTest(unittest.TestCase):
     def setUp(self):
         self.num_inputs = 2
         self.input_shape = (4, 5, 6)
@@ -12,7 +12,7 @@ class AffineLayerTest(unittest.TestCase):
 
         self.input_size = self.num_inputs * np.prod(self.input_shape)
         self.weight_size = self.output_dim * np.prod(self.input_shape)
-        self.layer = AffineLayer()
+        self.layer = Affine()
 
     def test_forward_pass(self):
         x = np.linspace(-0.1, 0.5, num=self.input_size).reshape(self.num_inputs, *self.input_shape)
