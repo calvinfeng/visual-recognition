@@ -30,3 +30,21 @@ class ConvTest(unittest.TestCase):
                           [[ 2.36270298,  2.36904306],
                            [ 2.38090835,  2.38247847]]]])
         self.assertAlmostEqual(1e-8, rel_error(out, correct_out), places=2)
+
+    def test_backward_pass(self):
+        np.random.seed(1)
+        x = np.random.randn(4, 3, 5, 5)
+        w = np.random.randn(2, 3, 3, 3)
+        b = np.random.randn(2,)
+        grad_out = np.random.randn(4, 2, 5, 5)
+        stride = 1
+        pad = 1
+
+        num_grad_x = eval_numerical_gradient_array(lambda x: self.layer.forward_pass(x, w, b, stride, pad), x, grad_out)
+        num_grad_w = eval_numerical_gradient_array(lambda w: self.layer.forward_pass(x, w, b, stride, pad), w, grad_out)
+        num_grad_b = eval_numerical_gradient_array(lambda b: self.layer.forward_pass(x, w, b, stride, pad), b, grad_out)
+
+        grad_x, grad_w, grad_b = self.layer.backward_pass(grad_out)
+        self.assertAlmostEqual(1e-8, rel_error(num_grad_x, grad_x), places=2)
+        self.assertAlmostEqual(1e-8, rel_error(num_grad_w, grad_w), places=2)
+        self.assertAlmostEqual(1e-8, rel_error(num_grad_b, grad_b), places=2)
