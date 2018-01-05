@@ -4,7 +4,6 @@ import numpy as np
 class Dropout(object):
     """Dropout implements a network layer that performs drop out regularization
     """
-
     def __init__(self):
         self.mask = None
         self.prob = None

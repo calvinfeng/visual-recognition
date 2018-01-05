@@ -9,7 +9,6 @@ class BatchNorm(object):
     produces a gamma with value mini-batch var^2 and a beta with value mini-batch mean, then normalization is canceled
     and this layer performs an identity transformation.
     """
-
     def __init__(self):
         self.x = None
         self.norm_x = None

@@ -7,7 +7,6 @@ class Conv(object):
     Convolution expects an input consisting of N data points, each with C channels, height H and width W. It applies
     F different filters, where each filter spans all C channels and has height Hf and width Wf.
     """
-
     def __init__(self):
         self.x = None
         self.x_pad = None
@@ -57,7 +56,7 @@ class Conv(object):
         return out
 
     def backward_pass(self, grad_out):
-        """Naive implementation of a backward pass for a convolutional layer, i.e. it has poor performanced as compared to
+        """Naive implementation of backward pass for a convolutional layer, i.e. it has poor performanced as compared to
         the native C implementation.
 
         Args:
