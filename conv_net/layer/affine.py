@@ -8,27 +8,27 @@ class Affine(object):
     any shape, (N, d1, d2, d3, ..., d_n), e.g. a set of 100 RGB 32x32 images is (100, 3, 32, 32).
     """
     def __init__(self):
-        self.input = None
-        self.weight = None
-        self.bias = None
+        self.x = None
+        self.w = None
+        self.b = None
 
-    def forward_pass(self, input, weight, bias):
+    def forward_pass(self, x, w, b):
         """
         Args:
-            input: A matrix of any shape
+            x: Input of any shape
 
         Returns:
-            output: A matrix of product of the input and weights plus bias
+            out: A matrix of product of the input and weights plus bias
         """
-        self.input = input
-        self.weight = weight
-        self.bias = bias
+        self.x = x
+        self.w = w
+        self.b = b
 
-        D = np.prod(input.shape[1:])
-        input_tf = input.reshape(input.shape[0], D)
-        output = np.dot(input_tf, weight) + bias
+        D = np.prod(x.shape[1:])
+        x_tf = x.reshape(x.shape[0], D)
+        out = np.dot(x_tf, w) + b
 
-        return output
+        return out
 
     def backward_pass(self, grad_out):
         """
@@ -36,20 +36,20 @@ class Affine(object):
             grad_out: Upstream derivative
 
         Returns:
-            grad_in: Gradients of upstream variable with respect to input matrix
-            grad_weight: Gradient of upstream variable with respect to weight matrix of shape (D, M)
-            grad_bias: Gradient of upstream variable with respect to bias vector of shape (M,)
+            grad_x: Gradients of upstream variable with respect to input matrix
+            grad_w: Gradient of upstream variable with respect to weight matrix of shape (D, M)
+            grad_b: Gradient of upstream variable with respect to bias vector of shape (M,)
 
         The shape changes depending on which layer this gate is inserted. For example, if it is the first gate in the
-        network, then grad_in has the shape (N, d_1, ..., d_k) and grad_weight has (D, M). Otherwise, the grad_in would
-        be (N x M) and grad_weight would be (M x M).
+        network, then grad_x has the shape (N, d_1, ..., d_k) and grad_w has (D, M). Otherwise, the grad_x would
+        be (N x M) and grad_w would be (M x M).
         """
-        if self.input is not None and self.weight is not None:
-            D = np.prod(self.input.shape[1:])
-            input_tf = self.input.reshape(self.input.shape[0], D)
+        if self.x is not None and self.w is not None:
+            D = np.prod(self.x.shape[1:])
+            input_tf = self.x.reshape(self.x.shape[0], D)
 
-            grad_weight = np.dot(input_tf.T, grad_out)
-            grad_in = np.dot(grad_out, self.weight.T).reshape(self.input.shape)
-            grad_bias = np.sum(grad_out.T, axis=1)
+            grad_w = np.dot(input_tf.T, grad_out)
+            grad_x = np.dot(grad_out, self.w.T).reshape(self.x.shape)
+            grad_b = np.sum(grad_out.T, axis=1)
 
-            return grad_in, grad_weight, grad_bias
+            return grad_x, grad_w, grad_b

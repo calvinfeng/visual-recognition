@@ -9,22 +9,34 @@ class BatchNorm(object):
     produces a gamma with value mini-batch var^2 and a beta with value mini-batch mean, then normalization is canceled
     and this layer performs an identity transformation.
     """
-    def __init__(self, bn_param=dict()):
+    def __init__(self, **kwargs):
         """
-        Args:
-            bn_param: A dictionary with the following keys
-                - eps: constant for numeric stability
-                - momentum: constant for running mean/variance calculation
-                - running_mean: if input has shape (N, D), then this is array of shape (D,)
-                - running_var: if input has shape (N, D), then this is array of shape (D,)
+        Keyword args:
+            eps: constant for numeric stability
+            momentum: constant for running mean/variance calculation
+            running_mean: if input has shape (N, D), then this is array of shape (D,)
+            running_var: if input has shape (N, D), then this is array of shape (D,)
         """
         self.x = None
         self.norm_x = None
         self.beta = None
         self.gamma = None
-        self.bn_param = bn_param # Supplied batch normalization parameter dictionary
-        self.mean = None # Mini-batch mean
-        self.var = None # Mini-batch variance
+
+        # Define mini-batch statistics
+        self.mean = None
+        self.var = None
+
+        # Define normalization parameters
+        self.norm_param = {
+            'eps': kwargs.get('eps', 1e-5),
+            'momentum': kwargs.get('momentum', 0.9)
+        }
+
+        if 'running_mean' in kwargs:
+            self.norm_param['running_mean'] = kwargs['running_mean']
+
+        if 'running_var' in kwargs:
+            self.norm_param['running_var'] = kwargs['running_var']
 
     def forward_pass(self, x, gamma, beta, mode='train'):
         """
@@ -41,11 +53,11 @@ class BatchNorm(object):
         self.beta = beta
         self.gamma = gamma
 
-        # Extract required parameters from batch norm param
-        eps = self.bn_param.get('eps', 1e-5)
-        momentum = self.bn_param.get('momentum', 0.9)
-        running_mean = self.bn_param.get('running_mean', np.zeros(D, dtype=x.dtype))
-        running_var = self.bn_param.get('running_var', np.zeros(D, dtype=x.dtype))
+        # Extract required parameters from normalization parameter dictionary
+        eps = self.norm_param['eps']
+        momentum = self.norm_param['momentum']
+        running_mean = self.norm_param.get('running_mean', np.zeros(D, dtype=x.dtype))
+        running_var = self.norm_param.get('running_var', np.zeros(D, dtype=x.dtype))
 
         if mode == 'train':
             self.mean = x.mean(axis=0)
@@ -66,8 +78,8 @@ class BatchNorm(object):
             raise ValueError("Invalid forward batch normalization mode: %s" % mode)
 
         # Update the parameter
-        self.bn_param['running_mean'] = running_mean
-        self.bn_param['running_var'] = running_var
+        self.norm_param['running_mean'] = running_mean
+        self.norm_param['running_var'] = running_var
 
         return out
 
@@ -83,7 +95,7 @@ class BatchNorm(object):
         """
         if self.x is not None and self.norm_x is not None:
             N = self.x.shape[0]
-            eps = self.bn_param.get('eps', 1e-5)
+            eps = self.norm_param['eps']
             grad_norm_x = grad_out * self.gamma
 
             if simplified:
@@ -106,7 +118,3 @@ class BatchNorm(object):
             grad_beta = grad_out.sum(axis=0)
 
         return grad_x, grad_gamma, grad_beta
-
-    def reset_running_avgs(self):
-        self.bn_param.pop('running_mean', None)
-        self.bn_param.pop('running_var', None)

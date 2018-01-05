@@ -5,12 +5,9 @@ import unittest
 
 
 class BatchNormTest(unittest.TestCase):
-    def setUp(self):
-        self.layer = BatchNorm()
-
     def test_forward_pass(self):
-        # Reset the running_mean and running_var
-        self.layer.reset_running_avgs()
+        # Reset the running_mean and running_var by re-instantiation
+        self.layer = BatchNorm()
 
         np.random.seed(1)
         N, D1, D2, D3 = 200, 50, 60, 3
@@ -34,8 +31,8 @@ class BatchNormTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(norm_x.std(axis=0), np.ones(D3), decimal=6)
 
     def test_backward_pass(self):
-        # Reset the running_mean and running_var
-        self.layer.reset_running_avgs()
+        # Reset the running_mean and running_var by re-instantiation
+        self.layer = BatchNorm()
 
         np.random.seed(1)
         N, D = 4, 5

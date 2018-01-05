@@ -13,8 +13,9 @@ class DropoutTest(unittest.TestCase):
         x = np.random.randn(500, 500) + 10
 
         for p in [0.3, 0.6, 0.75]:
-            out_train = self.layer.forward_pass(x, {'mode': 'train', 'p': p})
-            out_test = self.layer.forward_pass(x, {'mode': 'test', 'p': p})
+            self.layer.prob = p
+            out_train = self.layer.forward_pass(x, mode='train')
+            out_test = self.layer.forward_pass(x, mode='test')
 
             out_train_mean = out_train.mean()
             out_test_mean = out_test.mean()
@@ -26,10 +27,11 @@ class DropoutTest(unittest.TestCase):
             self.assertAlmostEqual(zero_fraction_test, 0, places=2)
 
     def test_backward_pass(self):
+        self.layer.prob = 0.8
+        self.layer.seed = 1
         np.random.seed(1)
         X = np.random.randn(10, 10) + 10
         grad_out = np.random.randn(*X.shape)
-        dropout_param = {'mode': 'train', 'p': 0.8, 'seed': 1}
-        num_grad_x = eval_numerical_gradient_array(lambda x: self.layer.forward_pass(x, dropout_param), X, grad_out)
+        num_grad_x = eval_numerical_gradient_array(lambda x: self.layer.forward_pass(x, mode='train'), X, grad_out)
         grad_x = self.layer.backward_pass(grad_out)
         self.assertAlmostEqual(rel_error(num_grad_x, grad_x), 1e-8, places=-2)

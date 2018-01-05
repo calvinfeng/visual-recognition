@@ -4,13 +4,15 @@ import numpy as np
 class MaxPool(object):
     """MaxPool implements a network layer that performs max pooling operation on input
     """
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.x = None
-        self.pool_height = None
-        self.pool_width = None
-        self.stride = None
 
-    def forward_pass(self, x, pool_height, pool_width, stride):
+        # Define max pooling parameters
+        self.pool_height = kwargs.get('pool_height', 1)
+        self.pool_width = kwargs.get('pool_width', 1)
+        self.stride = kwargs.get('stride', 1)
+
+    def forward_pass(self, x):
         """Naive implementation of forward pass for a max pooling layer, i.e. it has poor performance as compared to the
         native C implementation
 
@@ -23,19 +25,19 @@ class MaxPool(object):
         Returns:
             out: Output data, of shape (N, C, H_out, W_out)
         """
-        self.x, self.pool_height, self.pool_width, self.stride = x, pool_height, pool_width, stride
+        self.x = x
         N, C, H, W = x.shape
-        H_out = int(1 + (H - pool_height) / stride)
-        W_out = int(1 + (W - pool_width) / stride)
+        H_out = int(1 + (H - self.pool_height) / self.stride)
+        W_out = int(1 + (W - self.pool_width) / self.stride)
 
         out = np.zeros((N, C, H_out, W_out))
         for n in range(N):
             for c in range(C):
                 for h in range(H_out):
-                    h_in = h * stride
+                    h_in = h * self.stride
                     for w in range(W_out):
-                        w_in = w * stride
-                        out[n, c, h, w] = np.max(x[n, c, h_in:h_in + pool_height, w_in:w_in + pool_width])
+                        w_in = w * self.stride
+                        out[n, c, h, w] = np.max(x[n, c, h_in:h_in + self.pool_height, w_in:w_in + self.pool_width])
         return out
 
 

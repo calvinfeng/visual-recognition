@@ -7,15 +7,20 @@ class Conv(object):
     Convolution expects an input consisting of N data points, each with C channels, height H and width W. It applies
     F different filters, where each filter spans all C channels and has height Hf and width Wf.
     """
-    def __init__(self):
+    def __init__(self, **kwargs):
+        """
+        Keyword args:
+            stride: The number of pixels between adjacent receptive fields in the horizontal and vertical directions
+            pad: The number of pixels that will be used to zero-pad the input
+        """
         self.x = None
         self.x_pad = None
         self.w = None
         self.b = None
-        self.stride = None
-        self.pad = None
+        self.stride = kwargs.get('stride', 1)
+        self.pad = kwargs.get('pad', 0)
 
-    def forward_pass(self, x, w, b, stride, pad):
+    def forward_pass(self, x, w, b):
         """Naive implementation of forward pass for a convolutional layer, i.e. it has poor performance as compared to
         the native C implementation
 
@@ -23,12 +28,11 @@ class Conv(object):
             x: Input data, of shape (N, C, H, W)
             w: Filter weights, of shape (F, C, Hf, Wf)
             b: Biases, of shape (F,)
-            stride: The number of pixels between adjacent receptive fields in the horizontal and vertical directions
-            pad: The number of pixels that will be used to zero-pad the input
 
         Returns:
             out: Output data, of shape (N, F, H_out, W_out)
         """
+        pad, stride = self.pad, self.stride
         N, _, H, W = x.shape
         F, _, Hf, Wf = w.shape
 
@@ -52,7 +56,7 @@ class Conv(object):
                         out[n, f, h_out, w_out] += conv_sum + b[f]
 
         # Caching important variables
-        self.x, self.w, self.b, self.stride, self.pad = x, w, b, stride, pad
+        self.x, self.w, self.b = x, w, b
         return out
 
     def backward_pass(self, grad_out):

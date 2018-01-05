@@ -4,27 +4,28 @@ import numpy as np
 class Dropout(object):
     """Dropout implements a network layer that performs drop out regularization
     """
-    def __init__(self):
+    def __init__(self, **kwargs):
+        """
+        Keyword args:
+            prob: The probability for each neuron to drop out
+        """
         self.mask = None
-        self.prob = None
         self.mode = None
-        self.seed = None
 
-    # TODO: Switch this to keyword arguments
-    def forward_pass(self, x, dropout_param):
+        # Define dropout parameters
+        self.prob = kwargs.get('prob', 0)
+        self.seed = kwargs.get('seed', None)
+
+    def forward_pass(self, x, mode='train'):
         """
         Args:
             x: Input of any shape
-            dropout_param: A dictionary with the following keys:
-                - p: The probability for each neuron dropout
-                - mode: 'test' or 'train'
-                - seed: Seed for random number generator
+            mode: 'test' or 'train', optional
         Returns:
             out: Output of the same shape as input
         """
-        self.prob, self.mode = dropout_param['p'], dropout_param['mode']
-        if 'seed' in dropout_param:
-            self.seed = dropout_param['seed']
+        self.mode = mode
+        if self.seed is not None:
             np.random.seed(self.seed)
 
         if self.mode == 'train':

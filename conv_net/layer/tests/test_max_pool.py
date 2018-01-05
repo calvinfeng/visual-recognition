@@ -9,10 +9,12 @@ class MaxPoolTest(unittest.TestCase):
         self.layer = MaxPool()
 
     def test_forward_pass(self):
+        self.layer.pool_height = 2
+        self.layer.pool_width = 2
+        self.layer.stride = 2
         x_shape = (2, 3, 4, 4)
         x = np.linspace(-0.3, 0.4, num=np.prod(x_shape)).reshape(x_shape)
-        pool_height, pool_width, stride = 2, 2, 2
-        out = self.layer.forward_pass(x, pool_height, pool_width, stride)
+        out = self.layer.forward_pass(x)
         correct_out = np.array([[[[-0.26315789, -0.24842105],
                                   [-0.20421053, -0.18947368]],
                                  [[-0.14526316, -0.13052632],
@@ -28,12 +30,14 @@ class MaxPoolTest(unittest.TestCase):
         self.assertAlmostEqual(rel_error(out, correct_out), 1e-8, places=2)
 
     def test_backward_pass(self):
+        self.layer.pool_height = 2
+        self.layer.pool_width = 2
+        self.layer.stride = 2
         np.random.seed(1)
         X = np.random.randn(3, 2, 8, 8)
         grad_out = np.random.randn(3, 2, 4, 4)
-        pool_height, pool_width, stride = 2, 2, 2
 
-        func = lambda x: self.layer.forward_pass(x, pool_height, pool_width, stride)
+        func = lambda x: self.layer.forward_pass(x)
         num_grad_x = eval_numerical_gradient_array(func, X, grad_out)
         grad_x = self.layer.backward_pass(grad_out)
 
