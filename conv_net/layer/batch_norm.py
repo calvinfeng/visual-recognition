@@ -32,10 +32,10 @@ class BatchNorm(object):
             'momentum': kwargs.get('momentum', 0.9)
         }
 
-        if 'running_mean' in kwargs:
+        if kwargs.get('running_mean', None) is not None:
             self.norm_param['running_mean'] = kwargs['running_mean']
 
-        if 'running_var' in kwargs:
+        if kwargs.get('running_var', None) is not None:
             self.norm_param['running_var'] = kwargs['running_var']
 
     def forward_pass(self, x, gamma, beta, mode='train'):

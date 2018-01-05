@@ -7,7 +7,8 @@ class Dropout(object):
     def __init__(self, **kwargs):
         """
         Keyword args:
-            prob: The probability for each neuron to drop out
+            prob: Probability for each neuron to drop out
+            seed: Seeding integer for random generator
         """
         self.mask = None
         self.mode = None

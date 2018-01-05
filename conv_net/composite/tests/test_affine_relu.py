@@ -13,14 +13,14 @@ class AffineReLUTest(unittest.TestCase):
         x = np.random.randn(2, 3, 4)
         w = np.random.randn(12, 10)
         b = np.random.randn(10)
-        dout = np.random.randn(2, 10)
+        grad_out = np.random.randn(2, 10)
 
-        num_dx = eval_numerical_gradient_array(lambda x: self.layer.forward_pass(x, w, b), x, dout)
-        num_dw = eval_numerical_gradient_array(lambda w: self.layer.forward_pass(x, w, b), w, dout)
-        num_db = eval_numerical_gradient_array(lambda b: self.layer.forward_pass(x, w, b), b, dout)
+        num_grad_x = eval_numerical_gradient_array(lambda x: self.layer.forward_pass(x, w, b), x, grad_out)
+        num_grad_w = eval_numerical_gradient_array(lambda w: self.layer.forward_pass(x, w, b), w, grad_out)
+        num_grad_b = eval_numerical_gradient_array(lambda b: self.layer.forward_pass(x, w, b), b, grad_out)
 
-        dx, dw, db = self.layer.backward_pass(dout)
+        grad_x, grad_w, grad_b = self.layer.backward_pass(grad_out)
 
-        self.assertAlmostEqual(rel_error(num_dx, dx), 1e-9, places=2)
-        self.assertAlmostEqual(rel_error(num_dw, dw), 1e-9, places=2)
-        self.assertAlmostEqual(rel_error(num_db, db), 1e-9, places=2)
+        self.assertAlmostEqual(rel_error(num_grad_x, grad_x), 1e-9, places=2)
+        self.assertAlmostEqual(rel_error(num_grad_w, grad_w), 1e-9, places=2)
+        self.assertAlmostEqual(rel_error(num_grad_b, grad_b), 1e-9, places=2)
