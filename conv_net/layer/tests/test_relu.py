@@ -4,7 +4,7 @@ import numpy as np
 import unittest
 
 
-class ReluGateTest(unittest.TestCase):
+class ReLUTest(unittest.TestCase):
     def setUp(self):
         self.layer = ReLU()
 

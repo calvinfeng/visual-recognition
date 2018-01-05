@@ -79,29 +79,30 @@ class Conv(object):
         #
         # Essentially, the filter slides across top-left, top-right, bottom-left, and bottom-right pixels. We sum up the
         # derivative contribution from each stride we make for each channel of the filter.
-        grad_w = np.zeros(self.w.shape)
-        grad_x = np.zeros(self.x.shape)
-        grad_b = np.zeros(self.b.shape)
+        if self.x is not None and self.x_pad is not None:
+            grad_w = np.zeros(self.w.shape)
+            grad_x = np.zeros(self.x.shape)
+            grad_b = np.zeros(self.b.shape)
 
-        N, _, H, W = self.x.shape
-        F, _, Hf, Wf = self.w.shape
-        _, _, H_out, W_out = grad_out.shape
+            N, _, H, W = self.x.shape
+            F, _, Hf, Wf = self.w.shape
+            _, _, H_out, W_out = grad_out.shape
 
-        grad_x_pad = np.zeros(self.x_pad.shape)
-        for n in range(N):
+            grad_x_pad = np.zeros(self.x_pad.shape)
+            for n in range(N):
+                for f in range(F):
+                    for h_out in range(H_out):
+                        h_in = h_out * self.stride
+                        for w_out in range(W_out):
+                            w_in = w_out * self.stride
+                            # Summing up contribution from each filter block for each channel
+                            grad_w[f] += self.x_pad[n][:, h_in:h_in + Hf, w_in:w_in + Wf] * grad_out[n, f, h_out, w_out]
+                            grad_x_pad[n][:, h_in:h_in + Hf, w_in:w_in + Wf] += self.w[f] * grad_out[n, f, h_out, w_out]
+
+            # Get rid of padding
+            grad_x = grad_x_pad[:, :, self.pad:self.pad + H, self.pad:self.pad + W]
+
             for f in range(F):
-                for h_out in range(H_out):
-                    h_in = h_out * self.stride
-                    for w_out in range(W_out):
-                        w_in = w_out * self.stride
-                        # Summing up contribution from each filter block for each channel
-                        grad_w[f] += self.x_pad[n][:, h_in:h_in + Hf, w_in:w_in + Wf] * grad_out[n, f, h_out, w_out]
-                        grad_x_pad[n][:, h_in:h_in + Hf, w_in:w_in + Wf] += self.w[f] * grad_out[n, f, h_out, w_out]
+                grad_b[f] = np.sum(grad_out[:, f, :, :])
 
-        # Get rid of padding
-        grad_x = grad_x_pad[:, :, self.pad:self.pad + H, self.pad:self.pad + W]
-
-        for f in range(F):
-            grad_b[f] = np.sum(grad_out[:, f, :, :])
-
-        return grad_x, grad_w, grad_b
+            return grad_x, grad_w, grad_b
