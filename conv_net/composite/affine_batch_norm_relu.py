@@ -5,12 +5,12 @@ from conv_net.layer.batch_norm import BatchNorm
 
 
 class AffineBatchNormReLU(object):
-    def __init__(self):
+    def __init__(self, bn_param=dict()):
         self.affine_layer = Affine()
         self.relu_layer = ReLU()
-        self.batch_norm_layer = BatchNorm()
+        self.batch_norm_layer = BatchNorm(bn_param)
 
-    def forward_pass(self, x, w, b, gamma, beta, bn_param):
+    def forward_pass(self, x, w, b, gamma, beta, mode='train'):
         """ Performs forward propagation through affine, batch norm, and ReLU layers
 
         Args:
@@ -25,7 +25,7 @@ class AffineBatchNormReLU(object):
             relu_out: Output from ReLU layer
         """
         affine_out = self.affine_layer.forward_pass(x, w, b)
-        batch_norm_out = self.batch_norm_layer.forward_pass(affine_out, gamma, beta, bn_param)
+        batch_norm_out = self.batch_norm_layer.forward_pass(affine_out, gamma, beta, mode)
         relu_out = self.relu_layer.forward_pass(batch_norm_out)
 
         return relu_out

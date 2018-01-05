@@ -20,15 +20,14 @@ class AffineReLUTest(unittest.TestCase):
 
         gamma = np.random.randn(output_dim)
         beta = np.random.randn(output_dim)
-        bn_param = {'mode': 'train'}
 
+        mode = 'train'
         grad_out = np.random.randn(N, output_dim)
-
-        num_grad_x = eval_numerical_gradient_array(lambda x: self.layer.forward_pass(x, w, b, gamma, beta, bn_param), x, grad_out)
-        num_grad_w = eval_numerical_gradient_array(lambda w: self.layer.forward_pass(x, w, b, gamma, beta, bn_param), w, grad_out)
-        num_grad_b = eval_numerical_gradient_array(lambda b: self.layer.forward_pass(x, w, b, gamma, beta, bn_param), b, grad_out)
-        num_grad_gamma = eval_numerical_gradient_array(lambda gamma: self.layer.forward_pass(x, w, b, gamma, beta, bn_param), gamma, grad_out)
-        num_grad_beta = eval_numerical_gradient_array(lambda beta: self.layer.forward_pass(x, w, b, gamma, beta, bn_param), beta, grad_out)
+        num_grad_x = eval_numerical_gradient_array(lambda x: self.layer.forward_pass(x, w, b, gamma, beta, mode), x, grad_out)
+        num_grad_w = eval_numerical_gradient_array(lambda w: self.layer.forward_pass(x, w, b, gamma, beta, mode), w, grad_out)
+        num_grad_b = eval_numerical_gradient_array(lambda b: self.layer.forward_pass(x, w, b, gamma, beta, mode), b, grad_out)
+        num_grad_gamma = eval_numerical_gradient_array(lambda gamma: self.layer.forward_pass(x, w, b, gamma, beta, mode), gamma, grad_out)
+        num_grad_beta = eval_numerical_gradient_array(lambda beta: self.layer.forward_pass(x, w, b, gamma, beta, mode), beta, grad_out)
 
         grad_x, grad_w, grad_b, grad_gamma, grad_beta = self.layer.backward_pass(grad_out)
 
