@@ -1,4 +1,5 @@
 from composite.affine_relu import AffineReLU
+from composite.affine_batch_norm_relu import AffineBatchNormReLU
 from layer.affine import Affine
 from gradient_check import eval_numerical_gradient, rel_error
 import numpy as np
@@ -24,22 +25,20 @@ class FCNetworkModel(object):
         for dim in hidden_dims:
             self.params['W' + str(l)] = np.random.normal(0, scale=weight_scale, size=(prev_dim, dim))
             self.params['b' + str(l)] = np.zeros(dim,)
-            self.layers[str(l)] = AffineReLU()
+
+            if self.use_batchnorm:
+                self.params['gamma' + str(l)] = np.ones((1, 1))
+                self.params['beta' + str(l)] = np.zeros((1, 1))
+                self.layers[l] = AffineBatchNormReLU()
+            else:
+                self.layers[l] = AffineReLU()
 
             prev_dim = dim
             l += 1
 
         self.params['W' + str(l)] = np.random.normal(0, scale=weight_scale, size=(prev_dim, num_classes))
         self.params['b' + str(l)] = np.zeros(num_classes,)
-        self.layers[str(l)] = Affine()
-
-    def gradient_check(self, x, y):
-        print "Running numeric gradient check with reg = %s" % self.reg
-        loss, grads = self.loss(x, y)
-        for param_key in sorted(self.params):
-            f = lambda _: self.loss(x, y)[0]
-            num_grad = eval_numerical_gradient(f, self.params[param_key], verbose=False)
-            print "%s relative error: %.2e" % (param_key, rel_error(num_grad, grads[param_key]))
+        self.layers[l] = Affine()
 
     def loss(self, x, y=None):
         """Computes loss and gradients if label data is provided, else returns scores
@@ -61,21 +60,34 @@ class FCNetworkModel(object):
 
         prev_output = x
         l = 1
-        while l <= self.num_layers:
+        while l < self.num_layers:
             weight = self.params['W' + str(l)]
             bias = self.params['b' + str(l)]
-            gate = self.layers[str(l)]
+            curr_layer = self.layers[l]
 
-            prev_output = gate.forward_pass(prev_output, weight, bias)
+            if self.use_batchnorm:
+                gamma = self.params['gamma' + str(l)]
+                beta = self.params['beta' + str(l)]
+                prev_output = curr_layer.forward_pass(prev_output, weight, bias, gamma, beta, mode=mode)
+            else:
+                prev_output = curr_layer.forward_pass(prev_output, weight, bias)
             l += 1
 
-        scores = prev_output
+        # Forward propagate through last fully connected layer
+        weight = self.params['W' + str(l)]
+        bias = self.params['b' + str(l)]
+        final_layer = self.layers[l]
+        scores = final_layer.forward_pass(prev_output, weight, bias)
+
         if mode == 'test':
             return scores
 
-        loss, grad_input = self._softmax(scores, y)
+        ################################################################################################################
+        # Train mode
+        ################################################################################################################
         # Think of scores is an input to the softmax loss, so the gradient returned from _softmax is the gradient of the
         # input, i.e. grad_score
+        loss, grad_input = self._softmax(scores, y)
 
         l = 1
         while l <= self.num_layers:
@@ -86,19 +98,38 @@ class FCNetworkModel(object):
         grads = dict()
         l = self.num_layers
         while l > 0:
-            gate = self.layers[str(l)]
+            curr_layer = self.layers[l]
             if l == self.num_layers:
-                grad_input, grads['W' + str(l)], grads['b' + str(l)] = gate.backward_pass(grad_input)
+                grad_input, grads['W' + str(l)], grads['b' + str(l)] = curr_layer.backward_pass(grad_input)
                 grads['W' + str(l)] += self.reg * self.params['W' + str(l)]
             else:
                 if self.use_batchnorm:
-                    print "Using batchnorm, TO BE IMPLEMENTED"
+                    grad_input, dw, db, dgamma, dbeta = curr_layer.backward_pass(grad_input)
+                    grads['W' + str(l)], grads['b' + str(l)] = dw, db
+                    grads['gamma' + str(l)], grads['beta' + str(l)] = dgamma, dbeta
                 else:
-                    grad_input, grads['W' + str(l)], grads['b' + str(l)] = gate.backward_pass(grad_input)
-                    grads['W' + str(l)] += self.reg * self.params['W' + str(l)]
+                    grad_input, dw, db = curr_layer.backward_pass(grad_input)
+                    grads['W' + str(l)], grads['b' + str(l)] = dw, db
+
+                grads['W' + str(l)] += self.reg * self.params['W' + str(l)]
             l -= 1
 
         return loss, grads
+
+    def gradient_check(self, x, y):
+        """Runs gradient check on every parameter of the model
+
+        Args:
+            x: Input data, of any shape
+            y: Vector of labels
+        """
+        print "Running numeric gradient check with reg = %s" % self.reg
+
+        loss, grads = self.loss(x, y)
+        for param_key in sorted(self.params):
+            f = lambda _: self.loss(x, y)[0]
+            num_grad = eval_numerical_gradient(f, self.params[param_key], verbose=False)
+            print "%s relative error: %.2e" % (param_key, rel_error(num_grad, grads[param_key]))
 
     def _softmax(self, x, y):
         """Computes the loss and gradient for softmax classification

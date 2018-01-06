@@ -26,9 +26,9 @@ class Solver(object):
             checkpoint_name:
         """
         self.model = model
-        self.x_train = data['x_train']
+        self.x_train = data['X_train']
         self.y_train = data['y_train']
-        self.x_val = data['x_val']
+        self.x_val = data['X_val']
         self.y_val = data['y_val']
 
         # Unpack keyword arguments
@@ -61,7 +61,7 @@ class Solver(object):
         self.best_val_acc = 0
         self.best_params = {}
         self.loss_history = []
-        self.train_acc_hiustory = []
+        self.train_acc_history = []
         self.val_acc_history = []
 
         # Make a deep copy of the optim_config for each parameter NOTE: BUT WHY?
