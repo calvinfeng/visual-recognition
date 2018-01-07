@@ -47,17 +47,19 @@ class MediumModel(object):
         relu_out_6 = tf.nn.relu(affine_out_5)
         affine_out_7 = tf.matmul(relu_out_6, W3) + b3
 
-        # Define optimizer
-        optimizer = tf.train.AdamOptimizer(5e-4)
-
         # Define loss
         self.total_loss = tf.losses.hinge_loss(tf.one_hot(self.y, 10), logits=affine_out_7)
         self.mean_loss = tf.reduce_mean(self.total_loss)
-        self.op_objective = optimizer.minimize(self.mean_loss)
 
         # Define prediction and accuracy
         self.correct_prediction = tf.equal(tf.argmax(affine_out_7, axis=1), self.y)
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
+
+        # Define optimization objective, a.k.a train step
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        with tf.control_dependencies(update_ops):
+            # Ensure that we execute the update_ops before performing the optimization step
+            self.op_objective = tf.train.AdamOptimizer(5e-4).minimize(self.mean_loss)
 
     def run(self, inputX, inputY, epochs=1, print_every=70, batch_size=100, mode='train'):
         iterations = []
@@ -72,7 +74,7 @@ class MediumModel(object):
                 np.random.shuffle(train_indices)
 
                 variables = [self.mean_loss, self.correct_prediction, self.op_objective]
-                if mode == 'test':
+                if mode != 'train':
                     # If testing, we compute an accuracy score instead of the optimization objective
                     variables[-1] = self.accuracy
 
@@ -149,3 +151,7 @@ if __name__ == '__main__':
     plt.xlabel('Iteration number')
     plt.ylabel('Mini-batch training accuracy')
     plt.show()
+
+    Xval, yval = data['X_val'], data['y_val']
+    iterations, minibatch_losses, minibatch_accurs = model.run(Xval, yval, epochs=1, batch_size=100, mode='validate')
+    print minibatch_accurs
