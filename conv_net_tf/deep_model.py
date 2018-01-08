@@ -80,61 +80,64 @@ class DeepModel(object):
         with tf.control_dependencies(update_ops):
             self.op_objective = tf.train.AdamOptimizer(1e-3).minimize(self.mean_loss)
 
-    def run(self, inputX, inputY, epochs=1, print_every=70, batch_size=100, mode='train'):
+        # self.sess = tf.Session()
+        # self.sess.run(tf.global_variables_initializer())
+
+    def run(self, sess, inputX, inputY, epochs=1, print_every=70, batch_size=100, mode='train'):
         iterations = []
         minibatch_losses = []
         minibatch_accurs = []
-        with tf.Session() as sess:
-            with tf.device("/cpu:0"):
-                sess.run(tf.global_variables_initializer())
 
-                N = inputX.shape[0]
-                train_indices = np.arange(N)
-                np.random.shuffle(train_indices)
+        N = inputX.shape[0]
+        train_indices = np.arange(N)
+        np.random.shuffle(train_indices)
 
-                variables = [self.mean_loss, self.correct_prediction, self.op_objective]
-                if mode != 'train':
-                    # If testing, we compute an accuracy score instead of the optimization objective
-                    variables[-1] = self.accuracy
+        variables = [self.mean_loss, self.correct_prediction, self.accuracy]
+        if mode == 'train':
+            variables.append( self.op_objective)
 
-                iter_cnt = 0
-                for ep in range(epochs):
-                    num_correct_per_epoch = 0
-                    num_iterations = int(math.ceil(N / batch_size))
-                    for i in range(num_iterations):
-                        # Generate indices for the batch
-                        start_idx = (i * batch_size) % N
-                        idx_range = train_indices[start_idx:start_idx + batch_size]
+        iter_cnt = 0
+        for ep in range(epochs):
+            num_correct_per_epoch = 0
+            num_iterations = int(math.ceil(N / batch_size))
+            for i in range(num_iterations):
+                # Generate indices for the batch
+                start_idx = (i * batch_size) % N
+                idx_range = train_indices[start_idx:start_idx + batch_size]
 
-                        feed_dict = {
-                            self.X: inputX[idx_range, :],
-                            self.y: inputY[idx_range],
-                            self.is_training: mode == 'train'
-                        }
+                feed_dict = {
+                    self.X: inputX[idx_range, :],
+                    self.y: inputY[idx_range],
+                    self.is_training: mode == 'train'
+                }
 
-                        actual_batch_size = inputY[idx_range].shape[0]
+                actual_batch_size = inputY[idx_range].shape[0]
 
-                        # Compute loss and number of correct predictions
-                        mean_loss, corr, _ = sess.run(variables, feed_dict=feed_dict)
+                # Compute loss and number of correct predictions
+                if mode == 'train':
+                    mean_loss, corr, acc, _ = sess.run(variables, feed_dict=feed_dict)
+                else:
+                    mean_loss, corr, acc = sess.run(variables, feed_dict=feed_dict)
 
-                        minibatch_accurs.append(float(np.sum(corr)) / actual_batch_size)
-                        minibatch_losses.append(mean_loss * actual_batch_size)
-                        iterations.append(iter_cnt)
+                minibatch_accurs.append(acc)
+                minibatch_losses.append(mean_loss * actual_batch_size)
+                iterations.append(iter_cnt)
 
-                        num_correct_per_epoch += float(np.sum(corr))
+                num_correct_per_epoch += float(np.sum(corr))
 
-                        if mode == 'train' and (iter_cnt % print_every) == 0:
-                            mini_batch_acc = float(np.sum(corr)) / float(actual_batch_size)
-                            mini_batch_loss = mean_loss * float(actual_batch_size)
-                            print "Iteration {0}: with mini-batch loss = {1:.3g} and accuracy of {2:.2g}".format(iter_cnt, mini_batch_loss, mini_batch_acc)
+                if mode == 'train' and (iter_cnt % print_every) == 0:
+                    mini_batch_acc = float(np.sum(corr)) / float(actual_batch_size)
+                    mini_batch_loss = mean_loss * float(actual_batch_size)
+                    print "Iteration {0}: with mini-batch loss = {1:.3g} and accuracy of {2:.2g}".format(iter_cnt, mini_batch_loss, mini_batch_acc)
 
-                        iter_cnt += 1
+                iter_cnt += 1
 
-                    # End of epoch, that means went over all training examples at least once.
-                    accuracy = num_correct_per_epoch / N
-                    avg_loss = np.sum(minibatch_losses) / N
-                    print "Epoch {0}, overall loss = {1:.3g} and training accuracy = {2:.3g}".format(ep+1, avg_loss, accuracy)
-
+            # End of epoch, that means went over all training examples at least once.
+            avg_accuracy = num_correct_per_epoch / N
+            avg_loss = np.sum(minibatch_losses) / N
+            print "Epoch {0}, overall loss = {1:.3g} and avg training accuracy = {2:.3g}".format(ep+1,
+                                                                                                avg_loss,
+                                                                                                avg_accuracy)
         return iterations, minibatch_losses, minibatch_accurs
 
 
@@ -145,32 +148,35 @@ if __name__ == '__main__':
     print "Training data X shape={0}".format(Xtr.shape)
     print "Training data y shape={0}".format(ytr.shape)
 
-    t0 = time.time()
-    iterations, minibatch_losses, minibatch_accurs = model.run(Xtr, ytr,
-                                                                epochs=6,
-                                                                batch_size=100,
-                                                                print_every=10)
-    t1 = time.time()
+    with tf.Session() as sess:
+        with tf.device("/gpu:0"):
+            sess.run(tf.global_variables_initializer())
 
-    print "Elapsed time using GPU: " + str(t1 - t0)
+            t0 = time.time()
+            print 'Start training'
+            iters, losses, accuracies = model.run(sess, Xtr, ytr, epochs=7, batch_size=100, print_every=70)
+            t1 = time.time()
+            print "Elapsed time using GPU: " + str(t1 - t0)
+            print accuracies
 
-    plt.grid(True)
+            plt.grid(True)
 
-    plt.figure(1)
-    plt.subplot(2, 1, 1)
-    plt.plot(iterations, minibatch_losses)
-    plt.title('Mini-batch Loss')
-    plt.xlabel('Iteration number')
-    plt.ylabel('Mini-batch training loss')
+            plt.figure(1)
+            plt.subplot(2, 1, 1)
+            plt.plot(iters, losses)
+            plt.title('Mini-batch Losses Over Iterations')
+            plt.xlabel('Iteration number')
+            plt.ylabel('Mini-batch training loss')
 
-    plt.figure(1)
-    plt.subplot(2, 1, 2)
-    plt.plot(iterations, minibatch_accurs)
-    plt.title('Training Accuracy')
-    plt.xlabel('Iteration number')
-    plt.ylabel('Mini-batch training accuracy')
-    plt.show()
+            plt.figure(1)
+            plt.subplot(2, 1, 2)
+            plt.plot(iters, accuracies)
+            plt.title('Mini-batch Training Accuracies Over Iterations')
+            plt.xlabel('Iteration number')
+            plt.ylabel('Mini-batch training accuracy')
+            plt.show()
 
-    Xval, yval = data['X_val'], data['y_val']
-    iterations, minibatch_losses, minibatch_accurs = model.run(Xval, yval, epochs=1, batch_size=100, mode='validate')
-    print minibatch_accurs
+            Xval, yval = data['X_val'], data['y_val']
+            print 'Performing validations'
+            iters, losses, accuracies = model.run(sess, Xval, yval, epochs=1, batch_size=100, mode='validate')
+            print accuracies
