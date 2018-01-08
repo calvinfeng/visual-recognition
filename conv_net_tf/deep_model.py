@@ -66,15 +66,13 @@ class DeepModel(object):
         out_14 = tf.layers.dropout(inputs=out_13, rate=0.5, training=self.is_training)
         out_15 = tf.layers.dense(inputs=out_14, units=10)
 
-        # Final softmax
-        out_16 = tf.contrib.layers.softmax(logits=out_15)
-
-        # Define loss
-        cross_entropy_loss = tf.nn.softmax_cross_entropy_with_logits(labels=tf.one_hot(self.y, 10), logits=out_16)
+        # Define softmax loss
+        cross_entropy_loss = tf.nn.softmax_cross_entropy_with_logits(labels=tf.one_hot(self.y, 10), logits=out_15)
         self.mean_loss = tf.reduce_mean(cross_entropy_loss)
 
         # Define prediction and accuracy
-        self.correct_prediction = tf.equal(tf.argmax(out_16, axis=1), self.y)
+        probs = tf.contrib.layers.softmax(logits=out_15)
+        self.correct_prediction = tf.equal(tf.argmax(probs, axis=1), self.y)
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
 
         # Define optimization objective, a.k.a. train step

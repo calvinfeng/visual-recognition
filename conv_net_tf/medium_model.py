@@ -46,14 +46,13 @@ class MediumModel(object):
         affine_out_5 = tf.matmul(pool_out_4, W2) + b2
         relu_out_6 = tf.nn.relu(affine_out_5)
         affine_out_7 = tf.matmul(relu_out_6, W3) + b3
-        softmax = tf.contrib.layers.softmax(affine_out_7)
 
-        # Define loss
+        # Define SVM loss
         hinge_loss = tf.losses.hinge_loss(labels=tf.one_hot(self.y, 10), logits=affine_out_7)
         self.mean_loss = tf.reduce_mean(hinge_loss)
 
         # Define prediction and accuracy
-        self.correct_prediction = tf.equal(tf.argmax(softmax, axis=1), self.y)
+        self.correct_prediction = tf.equal(tf.argmax(affine_out_7, axis=1), self.y)
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
 
         # Define optimization objective, a.k.a train step
