@@ -40,19 +40,20 @@ class MediumModel(object):
         # Define the computational graph
         conv_out_1 = tf.nn.conv2d(self.X, W1, strides=[1, 1, 1, 1], padding='VALID') + b1
         relu_out_2 = tf.nn.relu(conv_out_1)
-        bn_out_3 = tf.layers.batch_normalization(relu_out_2, axis=1, training=self.is_training)
+        bn_out_3 = tf.layers.batch_normalization(relu_out_2, axis=3, training=self.is_training)
         pool_out_4 = tf.nn.pool(bn_out_3, window_shape=[2, 2], pooling_type='MAX', padding='VALID', strides=[2, 2])
         pool_out_4 = tf.reshape(pool_out_4, [-1, 32*13*13]) # -1 is used to infer N
         affine_out_5 = tf.matmul(pool_out_4, W2) + b2
         relu_out_6 = tf.nn.relu(affine_out_5)
         affine_out_7 = tf.matmul(relu_out_6, W3) + b3
+        softmax = tf.contrib.layers.softmax(affine_out_7)
 
         # Define loss
-        self.total_loss = tf.losses.hinge_loss(tf.one_hot(self.y, 10), logits=affine_out_7)
-        self.mean_loss = tf.reduce_mean(self.total_loss)
+        hinge_loss = tf.losses.hinge_loss(labels=tf.one_hot(self.y, 10), logits=affine_out_7)
+        self.mean_loss = tf.reduce_mean(hinge_loss)
 
         # Define prediction and accuracy
-        self.correct_prediction = tf.equal(tf.argmax(affine_out_7, axis=1), self.y)
+        self.correct_prediction = tf.equal(tf.argmax(softmax, axis=1), self.y)
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
 
         # Define optimization objective, a.k.a train step
