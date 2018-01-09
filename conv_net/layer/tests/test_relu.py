@@ -20,8 +20,8 @@ class ReLUTest(unittest.TestCase):
     def test_backward_pass(self):
         np.random.seed(231)
         x = np.random.randn(10, 10)
-        dout = np.random.randn(*x.shape)
-        dx_num = eval_numerical_gradient_array(lambda x: self.layer.forward_pass(x), x, dout)
-        dx = self.layer.backward_pass(dout)
+        grad_out = np.random.randn(*x.shape)
+        num_grad_x = eval_numerical_gradient_array(lambda x: self.layer.forward_pass(x), x, grad_out)
+        grad_x = self.layer.backward_pass(grad_out)
 
-        self.assertAlmostEqual(rel_error(dx_num, dx), 1e-9, places=2)
+        self.assertAlmostEqual(rel_error(num_grad_x, grad_x), 1e-9, places=2)
