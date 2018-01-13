@@ -87,7 +87,7 @@ class FCNetworkModel(object):
         ################################################################################################################
         # Think of scores is an input to the softmax loss, so the gradient returned from _softmax is the gradient of the
         # input, i.e. grad_score
-        loss, grad_input = self._softmax(scores, y)
+        loss, upstream_grad = self._softmax(scores, y)
 
         l = 1
         while l <= self.num_layers:
@@ -100,15 +100,15 @@ class FCNetworkModel(object):
         while l > 0:
             curr_layer = self.layers[l]
             if l == self.num_layers:
-                grad_input, grads['W' + str(l)], grads['b' + str(l)] = curr_layer.backward_pass(grad_input)
+                upstream_grad, grads['W' + str(l)], grads['b' + str(l)] = curr_layer.backward_pass(upstream_grad)
                 grads['W' + str(l)] += self.reg * self.params['W' + str(l)]
             else:
                 if self.use_batchnorm:
-                    grad_input, dw, db, dgamma, dbeta = curr_layer.backward_pass(grad_input)
+                    upstream_grad, dw, db, dgamma, dbeta = curr_layer.backward_pass(upstream_grad)
                     grads['W' + str(l)], grads['b' + str(l)] = dw, db
                     grads['gamma' + str(l)], grads['beta' + str(l)] = dgamma, dbeta
                 else:
-                    grad_input, dw, db = curr_layer.backward_pass(grad_input)
+                    upstream_grad, dw, db = curr_layer.backward_pass(upstream_grad)
                     grads['W' + str(l)], grads['b' + str(l)] = dw, db
 
                 grads['W' + str(l)] += self.reg * self.params['W' + str(l)]

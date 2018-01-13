@@ -4,7 +4,7 @@ import numpy as np
 import unittest
 
 
-class AffineReLUTest(unittest.TestCase):
+class AffineBatchNormReLU(unittest.TestCase):
     def setUp(self):
         self.layer = AffineBatchNormReLU()
 
